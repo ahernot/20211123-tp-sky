@@ -12,11 +12,10 @@ MASK_CLEAR = np.array([255, ]*3)
 def to_csv ():
     files = os.listdir(DIRPATH)
     files_nb = len(files)
-
     files.sort()
-    images, masks = files[:int(files_nb/2)], files[int(files_nb/2):]
 
-
+    # Keep only images
+    images = files[:int(files_nb/2)]
 
     pixels_sky = np.empty((0, 3))
     pixels_not = np.empty((0, 3))
@@ -24,7 +23,7 @@ def to_csv ():
 
     for image in images:
 
-        image_name, image_ext = os.path.splitext(image)
+        image_name, _ = os.path.splitext(image)
         id = image_name[4:]
         mask = f'mask_{id}_skymask.png'
 
@@ -57,15 +56,8 @@ def to_csv ():
     pixels_not_labeled = np.column_stack((pixels_not, pixels_not_labels))
 
     pixels_total_labeled = np.concatenate((pixels_sky_labeled, pixels_not_labeled), axis=0)
-    print(pixels_total_labeled.shape)
-
-
 
     # Export to csv
-    # dataframe = pd.DataFrame(pixels_total_labeled.astype(np.int))
-    # output_path = os.path.join(OUTPUT_DIR, 'export.csv')
-    # dataframe.to_csv(output_path)
-
     output_path = os.path.join(OUTPUT_DIR, 'export.npy')
     np.save(output_path, pixels_total_labeled.astype(np.int))
 

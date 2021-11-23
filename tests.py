@@ -9,11 +9,11 @@ from scoring import Metrics
 
 
 DIRPATH = 'src'
-# csv_path = os.path.join(DIRPATH, 'export.csv')
-# vals = pd.read_csv(csv_path).to_numpy()[1:, 1:]
 
-path = os.path.join(DIRPATH, 'export.npy')
-vals = np.load (path)
+
+
+import_path = os.path.join(DIRPATH, 'export.npy')
+vals = np.load (import_path)
 vals_nb = vals.shape[0]
 # print(vals)
 
@@ -38,9 +38,6 @@ m = Metrics(vals[:, -1], pred_rd)
 
 
 class Classifiers:
-
-    def __init__ (self):
-        pass
 
     @classmethod
     def LDA (cls, data):
