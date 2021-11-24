@@ -61,7 +61,7 @@ def create_sets(data, train_frac=0.05):
     train_nb = int(vals_nb * train_frac)
     return data_shuffled[:train_nb], data_shuffled[train_nb:]
 
-np.random.shuffle(data)
+# np.random.shuffle(data)
 data_train, data_test = create_sets(data)
 
 # Train LDA
