@@ -61,6 +61,8 @@ data_train, data_test = create_sets(data, train_frac=0.3)
 # metrics_lda = Metrics(data_test[:, -1], pred_lda)
 # print(metrics_lda.f_score())
 
+# generate masks!!!!!
+
 
 ########## QDA f1=0.9016371262346097
 # Train QDA

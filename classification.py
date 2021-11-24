@@ -111,7 +111,6 @@ class QDA:
         self.a_0 = -0.5 * (np.log(np.linalg.det(self.sigma_0)))
         self.a_1 = -0.5 * (np.log(np.linalg.det(self.sigma_1)))
 
-
     def predict (self, x):
 
         b_0 = -0.5 * np.dot (
@@ -148,7 +147,6 @@ class Kernel:
         self.data_0 = train_data[mask_0, :-1]
         mask_1 = (train_data[:, -1] == 1)
         self.data_1 = train_data[mask_1, :-1]
-
 
     def predict (self, x):
         x_arr = np.ones(self.train_data.shape[0])
