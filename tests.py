@@ -35,6 +35,7 @@ vals_nb = data.shape[0]
 # np.random.shuffle (pred_rd)
 
 # m = Metrics(data[:, -1], pred_rd)
+# print(m.f_score())
 
 
 
@@ -52,29 +53,36 @@ vals_nb = data.shape[0]
 
 
 
-########## LDA
+
 # Create TRAIN and TEST sets
 def create_sets(data, train_frac=0.05):
     # Create (train, test)
     data_shuffled = data.copy()
     np.random.shuffle(data_shuffled)
     train_nb = int(vals_nb * train_frac)
+    # print(f'training on {train_nb} vals')
     return data_shuffled[:train_nb], data_shuffled[train_nb:]
 
-# np.random.shuffle(data)
 data_train, data_test = create_sets(data)
 
+
+########## LDA f1=0.8875528357524567
 # Train LDA
-lda = Classifiers.LDA (data_train)
-# Test LDA
-pred_lda = np.array([lda(x) for x in data_test[:, :-1]])
-
-metrics_lda = Metrics(data_test[:, -1], pred_lda)
-print(metrics_lda.f_score())
-
+# lda = Classifiers.LDA (data_train)
+# # Test LDA
+# pred_lda = np.array([lda(x) for x in data_test[:, :-1]])
+# metrics_lda = Metrics(data_test[:, -1], pred_lda)
+# print(metrics_lda.f_score())
 
 
-
+########## QDA f1=
+# Train QDA
+qda = Classifiers.QDA (data_train)
+print('QDA trained')
+# Test QDA
+pred_qda = np.array([qda(x) for x in data_test[:10000, :-1]])
+metrics_qda = Metrics(data_test[:10000, -1], pred_qda)
+print(metrics_qda.f_score())
 
 
 

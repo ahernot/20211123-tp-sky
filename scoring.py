@@ -28,10 +28,7 @@ class Metrics:
         self.neg = self.fpos + self.tneg
 
     def __repr__ (self):
-        return f'''TP: {self.tpos}
-FP: {self.fpos}
-FN: {self.fneg}
-TN: {self.tneg}'''
+        return f'TP: {self.tpos}\nFP: {self.fpos}\nFN: {self.fneg}\nTN: {self.tneg}'
 
     def tpr (self): return self.tpos / self.pos 
     def tnr (self): return self.tneg / self.neg
