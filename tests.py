@@ -64,7 +64,8 @@ if RUN_LDA:
     data_test_lda  = data_test
 
     # Train LDA
-    lda = LDA (data_train_lda)
+    lda = LDA()
+    lda.fit (data_train_lda)
 
     # Test LDA
     pred_lda = lda.eval_batch(data_test_lda[:, :-1], verbose=True)
@@ -81,7 +82,8 @@ if RUN_QDA:
     data_test_qda  = data_test[:10000]
 
     # Train QDA
-    qda = QDA (data_train_qda)
+    qda = QDA()
+    qda.fit (data_train_qda)
 
     # Test QDA
     pred_qda = qda.eval_batch(data_test_qda[:, :-1], verbose=True)
@@ -102,7 +104,8 @@ if RUN_KERNEL:
         # return np.dot(x1, x2.T)
 
     # Train kernel
-    kernel = Kernel (data_train_kernel, func=func)
+    kernel = Kernel (func=func)
+    kernel.fit (data_train_kernel[:, :-1], data_train_kernel[:, -1])
 
     # Test kernel
     pred_kernel = kernel.eval_batch(data_test_kernel[:, :-1], verbose=True)
@@ -119,18 +122,24 @@ if RUN_KERNEL:
 
 
 ########## k-NN f1=0.9025367156208278 (1000train, 1000test)
+"""
+with step=16
+TP: 1932561
+FP: 221139
+FN: 567009
+TN: 4229081
+f1 = 0.8306249153820862
+"""
 RUN_KNN = True
 if RUN_KNN:
     data_train_knn = data_train[:] # 100000
     data_test_knn = data_test[:] # 100000
 
-    knn = NearestNeighborsOptimised(10)
+    knn = NearestNeighborsOptimised(nb_neighbors=1)
     knn.fit (data_train_knn[:, :-1], data_train[:, -1])
     pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=True)
     metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
     print(metrics_knn)
-    print(metrics_knn.f_score())
-
 
 
 """

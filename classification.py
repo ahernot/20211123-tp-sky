@@ -7,21 +7,23 @@ from functions import find_minima
 
 class LDA:
 
-    def __init__ (self, data):
+    def __init__ (self):
         """
         Linear discriminant analysis (LDA)
         Learn normal distribution from training data
         """
-        
+        pass
+
+    def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
         # Calculate covariance matrix from training data
-        self.sigma = np.cov (data[:, :-1].T)
+        self.sigma = np.cov (data.T)
         self.sigma_inv = np.linalg.inv (self.sigma)
 
         # Extract 0 and 1 classes
-        mask_0 = (data[:, -1] == 0)
-        data_0 = data[mask_0, :-1]
-        mask_1 = (data[:, -1] == 1)
-        data_1 = data[mask_1, :-1]
+        mask_0 = (labels == 0)
+        data_0 = data[mask_0]
+        mask_1 = (labels == 1)
+        data_1 = data[mask_1]
 
         # Calculate averages from training data
         self.mu_0 = np.average(data_0, axis=0)
@@ -103,12 +105,14 @@ class QDA:
         """
         Quadratic discriminant analysis (QDA)
         """
+        pass
         
+    def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
         # Extract 0 and 1 classes
-        mask_0 = (data[:, -1] == 0)
-        data_0 = data[mask_0, :-1]
-        mask_1 = (data[:, -1] == 1)
-        data_1 = data[mask_1, :-1]
+        mask_0 = (labels == 0)
+        data_0 = data[mask_0]
+        mask_1 = (labels == 1)
+        data_1 = data[mask_1]
 
         # Calculate covariance matrices from training data
         self.sigma_0 = np.cov (data_0.T)
@@ -168,20 +172,22 @@ class QDA:
 
 class Kernel:
 
-    def __init__ (self, data: np.ndarray, func: Callable):
-        self.train_data = data
+    def __init__ (self, func: Callable):
         self.func = func
 
+    def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
+        self.data = data
+
         # Extract 0 and 1 classes
-        mask_0 = (data[:, -1] == 0)
-        self.data_0 = data[mask_0, :-1]
-        mask_1 = (data[:, -1] == 1)
-        self.data_1 = data[mask_1, :-1]
+        mask_0 = (labels == 0)
+        self.data_0 = data[mask_0]
+        mask_1 = (labels == 1)
+        self.data_1 = data[mask_1]
 
     def eval (self, x):
-        x_arr = np.ones(self.train_data.shape[0])
+        x_arr = np.ones(self.data.shape[0])
         x_arr = np.column_stack((x_arr * x[0], x_arr * x[1], x_arr * x[2]))
-        a_0 = np.sum (self.func (x_arr, self.train_data[:, :-1]))
+        a_0 = np.sum (self.func (x_arr, self.data))
 
         x_arr_0 = np.ones(self.data_0.shape[0])
         x_arr_0 = np.column_stack((x_arr_0 * x[0], x_arr_0 * x[1], x_arr_0 * x[2]))
@@ -216,8 +222,10 @@ class Kernel:
 
 class LogisticRegression:
 
-    def __init__ (self, train_data: np.ndarray):
+    def __init__ (self):
         pass
+
+    def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
 
     def eval (self, x):
         pass
@@ -293,14 +301,19 @@ class NearestNeighbors:
 
 
 
+
 class NearestNeighborsOptimised:
 
     def __init__ (self, nb_neighbors: int = 1):
         self.nb_neighbors = nb_neighbors
-        self.trained = False
 
-        self.ax_vals = np.array([0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255]) #np.arange(0, 256, step=16)
+        #self.ax_vals = np.array([0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255])  # f1=0.9025367156208278
+        #self.ax_vals = np.array([0, 64, 128, 192, 255])  # f1=0.6547363316690783
+        self.ax_vals = np.arange(8, 256, step=16)
+        
         self.ax_vals_nb = self.ax_vals.shape[0]
+
+        # faire la liste en fonction des valeurs les plus courantes
 
 
     def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
