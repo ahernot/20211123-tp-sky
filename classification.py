@@ -1,6 +1,10 @@
 import numpy as np
 from typing import Callable
 
+import time
+
+from functions import find_minima
+
 class LDA:
 
     def __init__ (self, data):
@@ -78,8 +82,6 @@ class LDA:
 
 
 
-
-
 class QDA:
 
     def __init__ (self, data):
@@ -135,7 +137,6 @@ class QDA:
 
 
 
-
 class Kernel:
 
     def __init__ (self, train_data, func: Callable):
@@ -176,3 +177,61 @@ class LogisticRegression:
 
     def predict (self, x):
         pass
+
+
+
+class NearestNeighbors:
+    
+    def __init__ (self, nb_neighbors: int = 1):
+        self.nb_neighbors = nb_neighbors
+        self.trained = False
+
+    def __repr__ (self):
+        repr_list = [
+            f'{self.nb_neighbors}-NN classifier',
+            f'trained: {self.trained}'
+            # info on training data
+        ]
+        return '\n'.join (repr_list)
+
+    def fit (self, data: np.ndarray, labels: np.ndarray):
+        self.data = np.copy(data)
+        self.labels = labels
+
+    def eval_dumb (self, x):
+        #take mean
+        x_arr = np.ones(self.data.shape[0])
+        x_arr = np.column_stack((x_arr * x[0], x_arr * x[1], x_arr * x[2]))
+        dists = np.linalg.norm(self.data - x_arr, axis=1)
+        dists_labeled = np.column_stack((dists, self.labels))
+        np.sort(dists_labeled)
+
+        label_pred = np.average(dists_labeled[:self.nb_neighbors, -1])
+        print(dists_labeled)
+        print(label_pred)
+        return round(label_pred) # return 0 or 1
+
+
+    def eval (self, x, activation=np.average, verbose=True):
+
+        if verbose: time_start = time.time()
+        
+        # Calculate distances array
+        x_arr = np.ones(self.data.shape[0])
+        x_arr = np.column_stack((x_arr * x[0], x_arr * x[1], x_arr * x[2]))
+        dists = np.linalg.norm(self.data - x_arr, axis=1)
+
+        # Find minima ids
+        min_indices = find_minima(dists, self.nb_neighbors)
+        min_labels = self.labels[min_indices]
+
+        # Create 0-1 label
+        label_pred = activation(min_labels)
+
+        if verbose:
+            time_stop = time.time()
+            print(f'Evaluated in {time_stop - time_start} seconds')
+
+        return round(label_pred)
+
+        
