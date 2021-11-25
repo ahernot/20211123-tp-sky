@@ -4,7 +4,7 @@ import pandas as pd
 
 import os
 
-from classification import LDA, QDA, Kernel, NearestNeighbors, NearestNeighborsOptimised
+from classification import Random, LDA, QDA, Kernel, NearestNeighbors, NearestNeighborsOptimised
 from scoring import Metrics
 
 
@@ -13,7 +13,7 @@ from scoring import Metrics
 DIRPATH = 'src'
 
 
-
+########## Import data
 import_path = os.path.join(DIRPATH, 'export.npy')
 data = np.load (import_path)
 #data[:, :-1] = data[:, :-1]/255.
@@ -21,21 +21,6 @@ vals_nb = data.shape[0]
 
 
 
-
-
-
-###### RANDOM TEST
-# pos_percent = 0.3
-# pos_nb = int(vals_nb * pos_percent)
-# neg_nb = vals_nb - pos_nb
-
-# ones = np.ones((pos_nb), dtype=np.int)
-# zeros = np.zeros((neg_nb), dtype=np.int)
-# pred_rd = np.concatenate((ones, zeros))
-# np.random.shuffle (pred_rd)
-
-# m = Metrics(data[:, -1], pred_rd)
-# print(m.f_score())
 
 
 
@@ -55,6 +40,23 @@ def create_sets(data, train_frac=0.05):
     return data_shuffled[:train_nb], data_shuffled[train_nb:]
 
 data_train, data_test = create_sets(data, train_frac=0.3)
+
+
+
+
+###### RANDOM TEST
+RUN_RD = True
+
+if RUN_RD:
+    ran = Random (pos_ratio=0.3)
+    pred_ran = ran.eval_batch (9e6)
+
+    metrics_ran = Metrics(data, pred_ran)
+    print(metrics_ran)
+
+
+
+
 
 
 ########## LDA f1=0.8875528357524567
