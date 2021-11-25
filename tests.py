@@ -4,7 +4,7 @@ import pandas as pd
 
 import os
 
-from classification import LDA, QDA, Kernel, NearestNeighbors
+from classification import LDA, QDA, Kernel, NearestNeighbors, NearestNeighborsOptimised
 from scoring import Metrics
 
 
@@ -58,44 +58,57 @@ data_train, data_test = create_sets(data, train_frac=0.3)
 
 
 ########## LDA f1=0.8875528357524567
-# Train LDA
-# lda = LDA (data_train)
-# # Test LDA
-# pred_lda = np.array([lda.predict_seb(x) for x in data_test[:, :-1]])
-# metrics_lda = Metrics(data_test[:, -1], pred_lda)
-# print(metrics_lda.f_score())
+RUN_LDA = False
+if RUN_LDA:
+    data_train_lda = data_train
+    data_test_lda  = data_test
+
+    # Train LDA
+    lda = LDA (data_train_lda)
+
+    # Test LDA
+    pred_lda = lda.eval_batch(data_test_lda[:, :-1], verbose=True)
+    metrics_lda = Metrics(data_test_lda[:, -1], pred_lda)
+    print(metrics_lda.f_score())
 
 # generate masks!!!!!
 
 
 ########## QDA f1=0.9016371262346097
-# Train QDA
-# qda = QDA (data_train)
-# # Test QDA
-# pred_qda = np.array([qda.predict(x) for x in data_test[:10000, :-1]])
-# metrics_qda = Metrics(data_test[:10000, -1], pred_qda)
-# print(metrics_qda.f_score())
+RUN_QDA = False
+if RUN_QDA:
+    data_train_qda = data_train
+    data_test_qda  = data_test[:10000]
+
+    # Train QDA
+    qda = QDA (data_train_qda)
+
+    # Test QDA
+    pred_qda = qda.eval_batch(data_test_qda[:, :-1], verbose=True)
+    metrics_qda = Metrics(data_test_qda[:, -1], pred_qda)
+    print(metrics_qda.f_score())
 
 
 ########## KERNEL f1=0.8175104862054705
-# def func (x1: np.ndarray, x2: np.ndarray):
-#     dist = np.linalg.norm(x1 - x2)
-#     if dist > 1: return 1 / np.linalg.norm(x1 - x2)
-#     else: return 1
-#     # return np.dot(x1, x2.T)
+RUN_KERNEL = False
+if RUN_KERNEL:
+    data_train_kernel = data_train[:100000] # 100000
+    data_test_kernel  = data_test[:100000] # 100000
 
-# kernel = Kernel (data_train[:100000], func=func)
+    def func (x1: np.ndarray, x2: np.ndarray):
+        dist = np.linalg.norm(x1 - x2)
+        if dist > 1: return 1 / np.linalg.norm(x1 - x2)
+        else: return 1
+        # return np.dot(x1, x2.T)
 
-# # pred_kernel_list = list()
-# # data_test_nb = data_test[:100000].shape[0]
-# # for i, x in enumerate(data_test[:100000, :-1]):
-# #     pred_kernel_list .append(kernel.predict(x))
-# #     print(f'Progress: {round(100*i/data_test_nb, 6)}%')
-# # pred_kernel = np.array(pred_kernel_list)
-# pred_kernel = np.array([kernel.predict(x) for x in data_test[:100000, :-1]])
-# metrics_kernel = Metrics(data_test[:100000, -1], pred_kernel)
-# print(metrics_kernel)
-# print(metrics_kernel.f_score())
+    # Train kernel
+    kernel = Kernel (data_train_kernel, func=func)
+
+    # Test kernel
+    pred_kernel = kernel.eval_batch(data_test_kernel[:, :-1], verbose=True)
+    metrics_kernel = Metrics(data_test_kernel[:, -1], pred_kernel)
+    print(metrics_kernel)
+    print(metrics_kernel.f_score())
 
 
 ########## REGRESSION
@@ -106,15 +119,17 @@ data_train, data_test = create_sets(data, train_frac=0.3)
 
 
 ########## k-NN f1=0.9025367156208278 (1000train, 1000test)
-data_train_knn = data_train[:1000]
-data_test_knn = data_test[:1000]
+RUN_KNN = True
+if RUN_KNN:
+    data_train_knn = data_train[:] # 100000
+    data_test_knn = data_test[:] # 100000
 
-knn = NearestNeighbors(10)
-knn.fit (data_train_knn[:, :-1], data_train[:, -1])
-pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=True)
-metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
-print(metrics_knn)
-print(metrics_knn.f_score())
+    knn = NearestNeighborsOptimised(10)
+    knn.fit (data_train_knn[:, :-1], data_train[:, -1])
+    pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=True)
+    metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
+    print(metrics_knn)
+    print(metrics_knn.f_score())
 
 
 

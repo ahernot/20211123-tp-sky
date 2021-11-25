@@ -51,11 +51,11 @@ class LDA:
             self.mu_1
         )
 
-    def predict (self, x):
+    def eval (self, x):
         # Create classifier function (-> {0, 1})
         return int(np.dot(self.w, x) > self.c)
 
-    def predict_seb (self, x):
+    def eval_seb (self, x):
 
         k_00 = -2 * np.dot (
             np.dot (
@@ -80,6 +80,21 @@ class LDA:
         if k_0 > k_1: return 1
         else: return 0
 
+    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+        # Fake vectorisation
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval_seb(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        return np.array(pred_list)
+
+
 
 
 class QDA:
@@ -88,7 +103,6 @@ class QDA:
         """
         Quadratic discriminant analysis (QDA)
         """
-
         
         # Extract 0 and 1 classes
         mask_0 = (data[:, -1] == 0)
@@ -113,7 +127,7 @@ class QDA:
         self.a_0 = -0.5 * (np.log(np.linalg.det(self.sigma_0)))
         self.a_1 = -0.5 * (np.log(np.linalg.det(self.sigma_1)))
 
-    def predict (self, x):
+    def eval (self, x):
 
         b_0 = -0.5 * np.dot (
             np.dot (
@@ -135,21 +149,36 @@ class QDA:
 
         return int(delta_1 > delta_0)
 
+    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+        # Fake vectorisation
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        return np.array(pred_list)
+
+
 
 
 class Kernel:
 
-    def __init__ (self, train_data, func: Callable):
-        self.train_data = train_data
+    def __init__ (self, data: np.ndarray, func: Callable):
+        self.train_data = data
         self.func = func
 
         # Extract 0 and 1 classes
-        mask_0 = (train_data[:, -1] == 0)
-        self.data_0 = train_data[mask_0, :-1]
-        mask_1 = (train_data[:, -1] == 1)
-        self.data_1 = train_data[mask_1, :-1]
+        mask_0 = (data[:, -1] == 0)
+        self.data_0 = data[mask_0, :-1]
+        mask_1 = (data[:, -1] == 1)
+        self.data_1 = data[mask_1, :-1]
 
-    def predict (self, x):
+    def eval (self, x):
         x_arr = np.ones(self.train_data.shape[0])
         x_arr = np.column_stack((x_arr * x[0], x_arr * x[1], x_arr * x[2]))
         a_0 = np.sum (self.func (x_arr, self.train_data[:, :-1]))
@@ -168,6 +197,21 @@ class Kernel:
         if p_1 >= p_0: return 1
         else: return 0
 
+    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+        # Fake vectorisation
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        return np.array(pred_list)
+
+
 
 
 class LogisticRegression:
@@ -175,8 +219,12 @@ class LogisticRegression:
     def __init__ (self, train_data: np.ndarray):
         pass
 
-    def predict (self, x):
+    def eval (self, x):
         pass
+
+    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+        pass
+
 
 
 
@@ -229,6 +277,72 @@ class NearestNeighbors:
         return round(label_pred)
 
 
+    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+        # Fake vectorisation
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        return np.array(pred_list)
+
+
+
+class NearestNeighborsOptimised:
+
+    def __init__ (self, nb_neighbors: int = 1):
+        self.nb_neighbors = nb_neighbors
+        self.trained = False
+
+        self.ax_vals = np.array([0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255]) #np.arange(0, 256, step=16)
+        self.ax_vals_nb = self.ax_vals.shape[0]
+
+
+    def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
+
+        if verbose: time_start = time.time()
+
+        self.data = np.copy(data)
+        self.labels = labels
+
+        # Create cube with neighbors
+        self.neighbors_arr = np.empty((self.ax_vals_nb, self.ax_vals_nb, self.ax_vals_nb, self.nb_neighbors), dtype=np.int)
+
+        for x_id in range(self.ax_vals_nb):
+            for y_id in range(self.ax_vals_nb):
+                for z_id in range(self.ax_vals_nb):
+                    x_arr = np.zeros((data.shape[0], 3)) + np.array([self.ax_vals[x_id], self.ax_vals[y_id], self.ax_vals[z_id]])
+                    self.neighbors_arr [x_id, y_id, z_id] = find_minima(np.linalg.norm(data - x_arr, axis=1), self.nb_neighbors)
+
+        if verbose:
+            time_stop = time.time()
+            print(f'Fitting completed in {time_stop - time_start} seconds.')
+
+    def eval (self, x, activation=np.average):
+
+        # Calculate distance from every point in the cube (dimension per dimension here)
+        x_closest_ids = list()
+        for i in range(3):
+            x_arr_i = np.ones(self.ax_vals_nb) * x[i]
+            ax_distances = np.abs(self.ax_vals - x_arr_i) # one-dim norm
+            x_closest_id = np.argmin(ax_distances)
+            x_closest_ids.append(x_closest_id)
+
+        # Get pre-calculated nearest neighbors from cube
+        min_indices = self.neighbors_arr[x_closest_ids[0], x_closest_ids[1], x_closest_ids[2]].astype(np.int)
+
+        # Create 0-1 label
+        min_labels = self.labels[min_indices]
+        label_pred = activation(min_labels)
+
+        return round(label_pred)
+
+    
     def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
         # Fake vectorisation
 

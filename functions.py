@@ -14,4 +14,4 @@ def find_minima (arr: np.ndarray, min_nb: int = 1, max_int = 32767):
         # Remove position
         arr_c [min_id] = max_int
 
-    return np.array(minima_ids)
+    return np.array(minima_ids).astype(np.int)
