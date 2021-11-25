@@ -212,9 +212,7 @@ class NearestNeighbors:
         return round(label_pred) # return 0 or 1
 
 
-    def eval (self, x, activation=np.average, verbose=True):
-
-        if verbose: time_start = time.time()
+    def eval (self, x, activation=np.average):
         
         # Calculate distances array
         x_arr = np.ones(self.data.shape[0])
@@ -228,10 +226,19 @@ class NearestNeighbors:
         # Create 0-1 label
         label_pred = activation(min_labels)
 
-        if verbose:
-            time_stop = time.time()
-            print(f'Evaluated in {time_stop - time_start} seconds')
-
         return round(label_pred)
 
-        
+
+    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+        # Fake vectorisation
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        return np.array(pred_list)

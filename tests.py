@@ -51,7 +51,7 @@ def create_sets(data, train_frac=0.05):
     train_nb = int(vals_nb * train_frac)
 
     # print(f'training on {train_nb} vals')
-    
+
     return data_shuffled[:train_nb], data_shuffled[train_nb:]
 
 data_train, data_test = create_sets(data, train_frac=0.3)
@@ -105,13 +105,13 @@ data_train, data_test = create_sets(data, train_frac=0.3)
 
 
 
-########## k-NN
-data_train_knn = data_train[:10000]
-data_test_knn = data_test[:10000]
+########## k-NN f1=0.9025367156208278 (1000train, 1000test)
+data_train_knn = data_train[:1000]
+data_test_knn = data_test[:1000]
 
 knn = NearestNeighbors(10)
-knn.fit (data_train[:, :-1], data_train[:, -1])
-pred_knn = np.array([knn.eval(x) for x in data_test_knn[:, :-1]])
+knn.fit (data_train_knn[:, :-1], data_train[:, -1])
+pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=True)
 metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
 print(metrics_knn)
 print(metrics_knn.f_score())
