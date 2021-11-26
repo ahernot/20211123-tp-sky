@@ -98,8 +98,6 @@ class kdTree:
         self.median = np.median (self.data[:, axis])
 
         # Split along med on axis
-        # mask = self.data[:, axis] <= self.median
-        # data_split_A, data_split_B = self.data[mask], self.data[~mask]
         data_split_A = self.data[:self.data_nb//2]
         data_split_B = self.data[self.data_nb//2:]
 
