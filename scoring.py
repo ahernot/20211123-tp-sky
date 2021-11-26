@@ -89,3 +89,26 @@ class Metrics:
         num = 2 * (self.tpos * self.tneg - self.fneg * self.fpos)
         den = (self.tpos + self.fpos) * (self.fpos + self.tneg) + (self.tpos + self.fneg) * (self.fneg + self.tneg)
         return num / den
+
+
+# from sklearn.datasets import make_classification
+# from sklearn.model_selection import train_test_split
+
+
+'''
+TIMING A PROGRAM
+import cProfile, pstats
+profiler = cProfile.Profile()
+profiler.enable()
+
+# code
+
+profiler.disable()
+stats = pstats.Stats(profiler)
+stats.dump_stats('file.bin')
+
+
+# pip3.9 install snakeviz
+# snakeviz file.txt
+'''
+

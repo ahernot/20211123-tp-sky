@@ -4,7 +4,14 @@ import pandas as pd
 
 import os
 
-from classification import Random, LDA, QDA, Kernel, NearestNeighbors, NearestNeighborsOptimised
+from classification import Random, QDA, Kernel
+
+# from classifiers.random import Random
+from classifiers.lda import LDA
+# from classifiers.qda import QDA
+# from classifiers.kernel import Kernel
+from classifiers.nearest_neighbors import NearestNeighbors, NearestNeighborsOptimised, NearestNeighborsOptimised2
+
 from scoring import Metrics
 
 
@@ -44,8 +51,8 @@ data_train, data_test = create_sets(data, train_frac=0.3)
 
 
 
-###### RANDOM TEST
-RUN_RD = True
+###### RANDOM TEST (doesn't work)
+RUN_RD = False
 
 if RUN_RD:
     ran = Random (pos_ratio=0.3)
@@ -124,28 +131,13 @@ if RUN_KERNEL:
 
 
 ########## k-NN f1=0.9025367156208278 (1000train, 1000test)
-"""
-with step=16
-TP: 1932561
-FP: 221139
-FN: 567009
-TN: 4229081
-f1 = 0.8306249153820862
-"""
 RUN_KNN = True
 if RUN_KNN:
     data_train_knn = data_train[:] # 100000
     data_test_knn = data_test[:] # 100000
 
-    knn = NearestNeighborsOptimised(nb_neighbors=1)
+    knn = NearestNeighborsOptimised(nb_neighbors=100)
     knn.fit (data_train_knn[:, :-1], data_train[:, -1])
-    pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=True)
+    pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=False)
     metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
     print(metrics_knn)
-
-
-"""
-random : ypred = random w 30%
-lda: p(X|Y=0), p(X|Y=1) gaussienne same stdev, diff avg => regle de discrim lineaire; diff stdev => qda
-regression when fonction lineaire entre les deux
-"""
