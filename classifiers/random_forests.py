@@ -42,6 +42,43 @@ def gini (x, data: np.ndarray, labels: np.ndarray, val, axis:int=0):
 
 
 
+class Tree:
+
+    def __init__ (self, type_: str, data: np.ndarray, dimension: int, depth: int, parent):
+        self.parent = parent
+        self.data = data
+        self.data_nb = data.shape[0]
+
+        self.dimension = dimension
+        self.depth = depth
+        self.type = type_
+
+    @classmethod
+    def head (cls, data: np.ndarray, dimension: int):
+        return cls (type_='head', data=data, dimension=dimension, depth=0, parent=None)
+
+    @classmethod
+    def node (cls, data: np.ndarray, dimension: int, parent):
+        if data.shape[0] <= 1 or np.all(data[:, (parent.depth+1) % dimension] == data[0, (parent.depth+1) % dimension]):  # terminate growth if not enough data or same data (inseparable)
+            return cls.leaf(data, dimension, parent=parent)
+        else:
+            return cls(type_='node', data=data, dimension=dimension, depth=parent.depth+1, parent=parent)
+
+    @classmethod
+    def leaf (cls, data: np.ndarray, dimension: int, parent):
+        return cls(type_='leaf', data=data, dimension=dimension, depth=parent.depth+1, parent=parent)
+        
+
+    def grow (self):
+        pass
+
+
+
+
+
+
+
+
 class RandomForest:
     '''
     Optimised with trees
@@ -66,7 +103,7 @@ class RandomForest:
 
         
 
-class kdTree:
+class KDTree:
 
     def __init__ (self, type_: str, data: np.ndarray, dimension: int, depth: int, parent):
         self.parent = parent
@@ -101,45 +138,48 @@ class kdTree:
         data_split_A = self.data[:self.data_nb//2]
         data_split_B = self.data[self.data_nb//2:]
 
+        # Generate children
         self.children = [
-            kdTree.node(data=data_split_A, dimension=self.dimension, parent=self),
-            kdTree.node(data=data_split_B, dimension=self.dimension, parent=self)
+            KDTree.node(data=data_split_A, dimension=self.dimension, parent=self),
+            KDTree.node(data=data_split_B, dimension=self.dimension, parent=self)
         ]
+
+        # Grow children
         if self.children[0].type == 'node': self.children[0].grow()
         if self.children[1].type == 'node': self.children[1].grow()
 
 
 
-data = np.array([
-    [0, 1, 2],
-    [1, 2, 3],
-    [0, 3, 4],
-    [9, 3, 2],
-    [8, 3, 4],
-    [8, 5, 4],
-    [8, 3, 1],
-    [4, 5, 4],
-    [0, 3, 1],
-    [9, 3, 9],
-    [1, 1, 1]
-])
+# data = np.array([
+#     [0, 1, 2],
+#     [1, 2, 3],
+#     [0, 3, 4],
+#     [9, 3, 2],
+#     [8, 3, 4],
+#     [8, 5, 4],
+#     [8, 3, 1],
+#     [4, 5, 4],
+#     [0, 3, 1],
+#     [9, 3, 9],
+#     [1, 1, 1]
+# ])
 
 
-tree = kdTree.head(data, dimension=3)
-tree.grow()
+# tree = KDTree.head(data=data, dimension=3)
+# tree.grow()
 
-def print_tree (tree: kdTree):
+# def print_tree (tree: KDTree):
 
-    def print_tree_recur (depth, node_list):
-        for node in node_list:
-            type_ = node.type
-            indent = '\t' * depth
-            print(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
-            try:
-                print_tree_recur (depth+1, node.children)
-            except: pass
+#     def print_tree_recur (depth, node_list):
+#         for node in node_list:
+#             type_ = node.type
+#             indent = '\t' * depth
+#             print(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
+#             try:
+#                 print_tree_recur (depth+1, node.children)
+#             except: pass
     
-    print_tree_recur (depth=0, node_list=[tree])
+#     print_tree_recur (depth=0, node_list=[tree])
 
 
-print_tree(tree)
+# print_tree(tree)

@@ -4,13 +4,14 @@ import pandas as pd
 
 import os
 
-from classification import Random, QDA, Kernel
+from classification import Random
 
 # from classifiers.random import Random
 from classifiers.lda import LDA
-# from classifiers.qda import QDA
-# from classifiers.kernel import Kernel
+from classifiers.qda import QDA
+from classifiers.kernel import Kernel
 from classifiers.nearest_neighbors import NearestNeighbors, NearestNeighborsOptimised, NearestNeighborsOptimised2
+from classifiers.random_forests import KDTree
 
 from scoring import Metrics
 
@@ -131,7 +132,7 @@ if RUN_KERNEL:
 
 
 ########## k-NN f1=0.9025367156208278 (1000train, 1000test)
-RUN_KNN = True
+RUN_KNN = False
 if RUN_KNN:
     data_train_knn = data_train[:] # 100000
     data_test_knn = data_test[:] # 100000
@@ -141,3 +142,5 @@ if RUN_KNN:
     pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=False)
     metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
     print(metrics_knn)
+
+
