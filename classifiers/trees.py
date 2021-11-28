@@ -80,17 +80,17 @@ class Tree:
     def grow (self):
 
         # Growth checks 1
-        if self.depth == self.max_depth: return None  # Max depth reached
+        if self.depth == self.max_depth: return  # Max depth reached
         if self.homogeneity >= self.min_homogeneity: return  # Max homogeneity reached
 
         # Choose split axis and value
-        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])
+        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])        
 
         # Growth checks 2
-        # TODO: check if a split is empty!! or if only same value on axis => need to terminate (leaf)
+        if (self.split_val == 0) or (self.split_val == self.data_nb): return
         
         # Update type to node
-        self.type_ = 'node'
+        self.type = 'node'
 
         # Split data
         data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
@@ -106,12 +106,16 @@ class Tree:
         if data_split_A.shape[0] > 1: self.children[0].grow()
         if data_split_B.shape[0] > 1: self.children[1].grow()
 
+    def eval (self, x):
+        if self.type == 'leaf':
+            return self.dominant_label
+        else:
+            if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
+            else:                                   return self.children[1].eval(x)
 
 
-# tree = Tree()
-
-
-
+    # def eval_vector (self, vals: np.ndarray):
+    #     pass
 
 class KDTree:
 
@@ -171,7 +175,11 @@ data = np.array([
     [4, 5, 4, 0],
     [0, 3, 1, 0],
     [9, 3, 9, 1],
-    [1, 1, 1, 0]
+    [1, 1, 1, 0],
+    [2, 1, 3, 0],
+    [1, 7, 9, 0],
+    [3, 3, 2, 1],
+    [7, 2, 1, 1]
 ])
 
 
@@ -199,3 +207,5 @@ def print_tree (tree: KDTree):
 
 
 print_tree(tree)
+# x = (8, 3, 1)
+# pred = tree.eval(x)
