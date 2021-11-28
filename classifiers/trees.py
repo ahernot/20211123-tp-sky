@@ -62,7 +62,6 @@ class Tree:
         self.split_axis = None
         self.split_val  = None
 
-
     def __repr__ (self):
         def print_tree_recur (depth, node_list, print_list):
             if node_list == None: return print_list
@@ -76,14 +75,12 @@ class Tree:
             return print_list
         return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
 
-
     def eval (self, x):
         if self.type == 'leaf':
             return self.dominant_label
         else:
             if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
             else:                                   return self.children[1].eval(x)
-
 
     def eval_batch (self, data: np.ndarray, verbose=False):
         # Fake vectorisation
@@ -104,7 +101,6 @@ class Tree:
 
         return np.array(pred_list)
 
-    
     def get_depth (self):
         # recursive function
         raise NotImplementedError
@@ -170,36 +166,23 @@ class DecisionTree (Tree):
         self.children[0].grow()
         self.children[1].grow()
 
-    def eval (self, x):
-        if self.type == 'leaf':
-            return self.dominant_label
-        else:
-            if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
-            else:                                   return self.children[1].eval(x)
-
-
-    def eval_batch (self, data: np.ndarray, verbose=False):
-        # Fake vectorisation
-
-        time_start = time.time()
-
-        pred_list = list()
-        data_nb = data.shape[0]
-
-        for i, x in enumerate(data):
-            pred_list .append(self.eval(x))
-
-            if verbose:
-                print(f'Progress: {round(100*i/data_nb, 6)}%')
-
-        time_stop = time.time()
-        print(f'Evaluating completed in {time_stop - time_start} seconds.')
-
-        return np.array(pred_list)
-
 
 
 class DecisionTreeOld:
+
+    def __repr__ (self):
+        def print_tree_recur (depth, node_list, print_list):
+            if node_list == None: return print_list
+            for node in node_list:
+                type_ = node.type
+                indent = '\t' * depth
+                print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
+                try:
+                    print_list = print_tree_recur (depth+1, node.children, print_list)
+                except: pass
+            return print_list
+        return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
+
     def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
         """
         :param data: Node data (values and labels)
@@ -239,10 +222,7 @@ class DecisionTreeOld:
     def node (cls, data: np.ndarray, dimension: int, max_depth: int, min_homogeneity: float, parent):
         return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
 
-    
     def grow (self):
-        print('growing')
-
         # Growth checks 1 (tree satisfactory)
         if self.depth == self.max_depth:
             return
@@ -272,6 +252,33 @@ class DecisionTreeOld:
         # Grow children (changes type from leaf to node)
         self.children[0].grow()
         self.children[1].grow()
+
+    def eval (self, x):
+        if self.type == 'leaf':
+            return self.dominant_label
+        else:
+            if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
+            else:                                   return self.children[1].eval(x)
+
+    def eval_batch (self, data: np.ndarray, verbose=False):
+        # Fake vectorisation
+
+        time_start = time.time()
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        time_stop = time.time()
+        print(f'Evaluating completed in {time_stop - time_start} seconds.')
+
+        return np.array(pred_list)
+
 
 class KDTree (Tree):
 

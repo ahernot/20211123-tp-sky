@@ -11,7 +11,7 @@ from classifiers.lda import LDA
 from classifiers.qda import QDA
 from classifiers.kernel import Kernel
 from classifiers.nearest_neighbors import NearestNeighbors, NearestNeighborsOptimised, NearestNeighborsOptimised2
-from classifiers.trees import DecisionTree, KDTree
+from classifiers.trees import DecisionTree, DecisionTreeOld, KDTree
 from classifiers.random_forests import RandomForest
 
 from scoring import Metrics
@@ -81,7 +81,7 @@ if RUN_LDA:
     # Test LDA
     pred_lda = lda.eval_batch(data_test_lda[:, :-1], verbose=True)
     metrics_lda = Metrics(data_test_lda[:, -1], pred_lda)
-    print(metrics_lda.f_score())
+    print(metrics_lda)
 
 # generate masks!!!!!
 
@@ -99,7 +99,7 @@ if RUN_QDA:
     # Test QDA
     pred_qda = qda.eval_batch(data_test_qda[:, :-1], verbose=True)
     metrics_qda = Metrics(data_test_qda[:, -1], pred_qda)
-    print(metrics_qda.f_score())
+    print(metrics_qda)
 
 
 ########## KERNEL f1=0.8175104862054705
@@ -122,7 +122,6 @@ if RUN_KERNEL:
     pred_kernel = kernel.eval_batch(data_test_kernel[:, :-1], verbose=True)
     metrics_kernel = Metrics(data_test_kernel[:, -1], pred_kernel)
     print(metrics_kernel)
-    print(metrics_kernel.f_score())
 
 
 ########## REGRESSION
