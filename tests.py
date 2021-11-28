@@ -11,7 +11,7 @@ from classifiers.lda import LDA
 from classifiers.qda import QDA
 from classifiers.kernel import Kernel
 from classifiers.nearest_neighbors import NearestNeighbors, NearestNeighborsOptimised, NearestNeighborsOptimised2
-from classifiers.trees import Tree, KDTree, print_tree
+from classifiers.trees import DecisionTree, KDTree
 from classifiers.random_forests import RandomForest
 
 from scoring import Metrics
@@ -152,7 +152,7 @@ if RUN_TREE:
     data_train_tree = data_train[:100]
     data_test_tree = data_test[:50000]
 
-    tree = Tree(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
+    tree = DecisionTree(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
     tree.grow()
 
     print(tree)
