@@ -66,13 +66,3 @@ def label_freqs (labels: np.ndarray):
 def gini_bin (labels: np.ndarray):  # no need for data
     freq_0, freq_1 = label_freqs(labels=labels)
     return 1 - freq_0**2 - freq_1**2
-
-def homogeneity_score (labels: np.ndarray):
-    """
-    Calculate homogeneity score
-    :param labels:
-    :return: Dominant label, dominant label frequency
-    """
-    freq_0, freq_1 = label_freqs(labels=labels)
-    if freq_0 > freq_1: return 0, freq_0
-    else: return 1, freq_1
