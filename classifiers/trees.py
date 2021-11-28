@@ -1,6 +1,9 @@
+import time
 import numpy as np
 # from functions import label_freqs, gini_bin
 
+
+#TODO: create parent class for both
 
 def label_freqs (labels: np.ndarray):
     data_len = labels.shape[0]
@@ -114,8 +117,25 @@ class Tree:
             else:                                   return self.children[1].eval(x)
 
 
-    # def eval_vector (self, vals: np.ndarray):
-    #     pass
+    def eval_batch (self, data: np.ndarray, verbose=False):
+        # Fake vectorisation
+
+        time_start = time.time()
+
+        pred_list = list()
+        data_nb = data.shape[0]
+
+        for i, x in enumerate(data):
+            pred_list .append(self.eval(x))
+
+            if verbose:
+                print(f'Progress: {round(100*i/data_nb, 6)}%')
+
+        time_stop = time.time()
+        print(f'Evaluating completed in {time_stop - time_start} seconds.')
+
+        return np.array(pred_list)
+
 
 class KDTree:
 
@@ -164,31 +184,6 @@ class KDTree:
 
 
 
-data = np.array([
-    [0, 1, 2, 0],
-    [1, 2, 3, 0],
-    [0, 3, 4, 1],
-    [9, 3, 2, 1],
-    [8, 3, 4, 0],
-    [8, 5, 4, 1],
-    [8, 3, 1, 1],
-    [4, 5, 4, 0],
-    [0, 3, 1, 0],
-    [9, 3, 9, 1],
-    [1, 1, 1, 0],
-    [2, 1, 3, 0],
-    [1, 7, 9, 0],
-    [3, 3, 2, 1],
-    [7, 2, 1, 1]
-])
-
-
-# tree = KDTree.root(data=data, dimension=3)
-# tree.grow()
-
-tree = Tree(data=data, dimension=3, max_depth=10)
-tree.grow()
-
 def print_tree (tree: KDTree):
 
     def print_tree_recur (depth, node_list):
@@ -203,9 +198,3 @@ def print_tree (tree: KDTree):
             except: pass
     
     print_tree_recur (depth=0, node_list=[tree])
-
-
-
-print_tree(tree)
-# x = (8, 3, 1)
-# pred = tree.eval(x)
