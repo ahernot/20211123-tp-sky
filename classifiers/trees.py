@@ -41,7 +41,7 @@ def choose_split (vals, labels, val_range=range(256)):
 
 class Tree:
 
-    def __init__ (self): pass
+    #def __init__ (self): pass
 
     def __repr__ (self):
         def print_tree_recur (depth, node_list, print_list):
@@ -126,8 +126,8 @@ class DecisionTree (Tree):
 
         # Generate children
         self.children = [
-            Tree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
-            Tree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
+            DecisionTree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
+            DecisionTree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
         ]
 
         # Grow children (changes type from leaf to node)
@@ -168,7 +168,7 @@ class DecisionTree (Tree):
 
     
 
-class KDTree:
+class KDTree (Tree):
 
     def __init__ (self, type_: str, data: np.ndarray, dimension: int, depth: int, parent):
         self.parent = parent
