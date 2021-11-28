@@ -4,7 +4,7 @@ sys.setrecursionlimit(10**6)
 
 import numpy as np
 
-from classifiers.trees import Tree
+from classifiers.trees import DecisionTree
 
 
 # SEB SAID: bool tree
@@ -43,7 +43,7 @@ class RandomForest:
             data = np.column_stack ((vals, labels))
             data_rdsample = data[np.random.choice( np.arange(0, data.shape[0], dtype=np.int), size=(self.sample_size) )]
 
-            tree = Tree (data=data_rdsample, dimension=3, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity)
+            tree = DecisionTree (data=data_rdsample, dimension=3, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity)
             tree.grow()
             self.trees.append(tree)
 
