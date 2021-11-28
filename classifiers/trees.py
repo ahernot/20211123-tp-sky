@@ -3,8 +3,6 @@ import numpy as np
 # from functions import label_freqs, gini_bin
 
 
-#TODO: create parent class for both
-
 def label_freqs (labels: np.ndarray):
     data_len = labels.shape[0]
     if data_len == 0: return 0, 0
@@ -16,9 +14,6 @@ def gini_bin (labels: np.ndarray):  # no need for data
     freq_0, freq_1 = label_freqs(labels=labels)
     return 1 - freq_0**2 - freq_1**2
 
-
-
-# might be argmax and not argmin
 def choose_split (vals, labels, val_range=range(256)):
 
     def split_score_axis (split_val, axis, vals, labels):  # on one of the 3 axes
@@ -39,26 +34,9 @@ def choose_split (vals, labels, val_range=range(256)):
     return axis, split_val
 
 
+
+
 class Tree:
-
-    #def __init__ (self): pass
-
-    def __repr__ (self):
-        def print_tree_recur (depth, node_list, print_list):
-            if node_list == None: return print_list
-            for node in node_list:
-                type_ = node.type
-                indent = '\t' * depth
-                print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
-                try:
-                    print_list = print_tree_recur (depth+1, node.children, print_list)
-                except: pass
-            return print_list
-        return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
-
-
-
-class DecisionTree (Tree):
 
     def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
         """
@@ -95,44 +73,20 @@ class DecisionTree (Tree):
         self.split_axis = None
         self.split_val  = None
 
-    @classmethod
-    def node (cls, data: np.ndarray, dimension: int, max_depth: int, min_homogeneity: float, parent):
-        return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
 
-    def grow (self):
+    def __repr__ (self):
+        def print_tree_recur (depth, node_list, print_list):
+            if node_list == None: return print_list
+            for node in node_list:
+                type_ = node.type
+                indent = '\t' * depth
+                print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
+                try:
+                    print_list = print_tree_recur (depth+1, node.children, print_list)
+                except: pass
+            return print_list
+        return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
 
-        # Growth checks 1
-        if self.depth == self.max_depth:
-            # print('max depth reached')
-            return
-        if self.homogeneity >= self.min_homogeneity:
-            # print('homogeneity target reached')
-            return
-
-        # Choose split axis and value
-        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])        
-
-        # Growth checks 2
-        if (self.split_val == 0) or (self.split_val == self.data_nb):
-            # print('no split found')
-            return
-        
-        # Update type to node
-        if self.type == 'leaf': self.type = 'node'
-
-        # Split data
-        data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
-        data_split_B = self.data[self.data[:, self.split_axis] >= self.split_val]
-
-        # Generate children
-        self.children = [
-            DecisionTree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
-            DecisionTree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
-        ]
-
-        # Grow children (changes type from leaf to node)
-        if data_split_A.shape[0] > 1: self.children[0].grow()
-        if data_split_B.shape[0] > 1: self.children[1].grow()
 
     def eval (self, x):
         if self.type == 'leaf':
@@ -166,74 +120,114 @@ class DecisionTree (Tree):
         # recursive function
         raise NotImplementedError
 
-    
+
+class DecisionTree (Tree):
+
+    def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
+        """
+        :param data: Node data (values and labels)
+        :param dimension: Tree dimension
+        :param max_depth: Tree max depth (depth values are in range(0, max_depth+1)), = -1 for unlimited
+        :param min_homogeneity: Breakoff homogeneity, = 1. for full tree
+        :param type_: Node type
+        :param depth: Node depth
+        :param parent: Node parent
+        """
+
+        super(DecisionTree, self).__init__(
+            data=data,
+            dimension=dimension,
+            max_depth=max_depth,
+            min_homogeneity=min_homogeneity,
+            type_=type_,
+            depth=depth,
+            parent=parent
+        )
+
+    @classmethod
+    def node (cls, data: np.ndarray, dimension: int, max_depth: int, min_homogeneity: float, parent):
+        return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
+
+    def grow (self):
+
+        # Growth checks 1 (tree satisfactory)
+        if self.depth == self.max_depth:
+            return
+        if self.homogeneity >= self.min_homogeneity:
+            return
+
+        # Choose split axis and value
+        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])        
+
+        # Growth checks 2 (no split found)
+        if (self.split_val == 0) or (self.split_val == self.data_nb):
+            return
+        
+        # Update type to node
+        if self.type == 'leaf': self.type = 'node'
+
+        # Split data
+        data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
+        data_split_B = self.data[self.data[:, self.split_axis] >= self.split_val]
+
+        # Generate children
+        self.children = [
+            DecisionTree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
+            DecisionTree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
+        ]
+
+        # Grow children (changes type from leaf to node)
+        self.children[0].grow()
+        self.children[1].grow()
+
 
 class KDTree (Tree):
 
-    def __init__ (self, type_: str, data: np.ndarray, dimension: int, depth: int, parent):
-        self.parent = parent
-        self.data = data
-        self.data_nb = data.shape[0]
+    def __init__ (self, data: np.ndarray, dimension: int, type_: str = 'root', depth: int = 0, parent = None):
 
-        self.dimension = dimension
-        self.depth = depth
-        self.type = type_
-
-    @classmethod
-    def root (cls, data: np.ndarray, dimension: int):
-        return cls (type_='root', data=data, dimension=dimension, depth=0, parent=None)
-
-    @classmethod
-    def node (cls, data: np.ndarray, dimension: int, parent):
-        if data.shape[0] <= 1 or np.all(data[:, (parent.depth+1) % dimension] == data[0, (parent.depth+1) % dimension]):  # terminate growth if not enough data or same data (inseparable)
-            return cls.leaf(data, dimension, parent=parent)
-        else:
-            return cls(type_='node', data=data, dimension=dimension, depth=parent.depth+1, parent=parent)
+        super(KDTree, self).__init__(
+            data=data,
+            dimension=dimension,
+            max_depth=-1,
+            min_homogeneity=1.,
+            type_=type_,
+            depth=depth,
+            parent=parent
+        )
 
     @classmethod
-    def leaf (cls, data: np.ndarray, dimension: int, parent):
-        return cls(type_='leaf', data=data, dimension=dimension, depth=parent.depth+1, parent=parent)
-        
+    def node (cls, data: np.ndarray, dimension: int, max_depth: int, min_homogeneity: float, parent):
+        return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
-        axis = self.depth % self.dimension
-        self.median = np.median (self.data[:, axis])
 
-        # Split along med on axis
+        # Growth checks 1
+        if self.depth == self.max_depth:
+            return
+        if self.homogeneity >= self.min_homogeneity:
+            return
+
+        # Choose split axis and value
+        self.split_axis = self.depth % self.dimension
+        self.split_val = np.median (self.data[:, self.split_axis])
+
+        # Growth checks 2 (no split found)
+        if (self.split_val == 0) or (self.split_val == self.data_nb):
+            return
+
+        # Update type to node
+        if self.type == 'leaf': self.type = 'node'
+
+        # Split data (along median)
         data_split_A = self.data[:self.data_nb//2]
         data_split_B = self.data[self.data_nb//2:]
 
         # Generate children
         self.children = [
-            KDTree.node(data=data_split_A, dimension=self.dimension, parent=self),
-            KDTree.node(data=data_split_B, dimension=self.dimension, parent=self)
+            DecisionTree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
+            DecisionTree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
         ]
 
-        # Grow children
-        if self.children[0].type == 'node': self.children[0].grow()
-        if self.children[1].type == 'node': self.children[1].grow()
-
-
-def print_tree (tree):
-    def print_tree_recur (depth, node_list):
-        if node_list == None: return
-        for node in node_list:
-            type_ = node.type
-            indent = '\t' * depth
-            print(f'{indent}{type_} – size={node.data.shape[0]}')
-            # print_list.append(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
-            try:
-                print_tree_recur (depth+1, node.children)
-            except: pass
-    print_tree_recur (depth=0, node_list=[tree])
-
-
-# data = np.array ([
-#     [9, 12, 10, 0],
-#     [84, 95, 109, 1],
-#     [82, 113, 146, 0]
-# ])
-
-# tree = Tree (data=data, dimension=3, max_depth=5, min_homogeneity=0.8)
-# tree.grow()
-# print_tree(tree)
+        # Grow children (changes type from leaf to node)
+        self.children[0].grow()
+        self.children[1].grow()
