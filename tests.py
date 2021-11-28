@@ -170,6 +170,6 @@ if RANDOM_FOREST:
     forest = RandomForest(nb_trees=50, sample_size=1000, max_depth=5)
     forest.fit(vals=data_train_forest[:, :-1], labels=data_train_forest[:, -1])
 
-    pred_forest = forest.eval_batch(vals=data_test_forest[:, :-1], verbose=True)
+    pred_forest = forest.eval_batch(vals=data_test_forest[:, :-1], verbose=False)
     metrics_forest = Metrics(labels=data_test_forest[:, -1], predictions=pred_forest)
     print(metrics_forest)

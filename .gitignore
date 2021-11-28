@@ -1,4 +1,6 @@
 __pycache__/*
 classifiers/__pycache__/*
 src/*
-output/*
+# output/*
+output/export.csv
+output/export.npy
