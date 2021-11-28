@@ -1,28 +1,17 @@
 import time
 import numpy as np
-# from functions import label_freqs, gini_bin
+
+from functions import label_freqs, gini_bin
 
 
-def label_freqs (labels: np.ndarray):
-    data_len = labels.shape[0]
-    if data_len == 0: return 0, 0
-    freq_0 = np.count_nonzero(labels==0) / data_len
-    freq_1 = np.count_nonzero(labels==1) / data_len
-    return freq_0, freq_1
-
-def gini_bin (labels: np.ndarray):  # no need for data
-    freq_0, freq_1 = label_freqs(labels=labels)
-    return 1 - freq_0**2 - freq_1**2
-
-def choose_split (vals, labels, val_range=range(256)):
+def choose_split (vals, labels, freqs, val_range = range(256)):
 
     def split_score_axis (split_val, axis, vals, labels):  # on one of the 3 axes
         labels_split_A = labels[vals[:, axis] < split_val]  # can be done with count_nonzero?
         labels_split_B = labels[vals[:, axis] >= split_val]
         data_A_len = labels_split_A.shape[0]
         data_B_len = labels_split_B.shape[0]
-        # if data_A_len == 0 or data_B_len == 0: return 1000
-        return data_A_len * gini_bin(labels_split_A) + data_B_len * gini_bin(labels_split_B)
+        return data_A_len * gini_bin(*freqs) + data_B_len * gini_bin(*freqs)
 
     axis_mins = list()
     for axis in range(3):
@@ -149,6 +138,7 @@ class DecisionTree (Tree):
         return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
+        print('growing')
 
         # Growth checks 1 (tree satisfactory)
         if self.depth == self.max_depth:
@@ -157,7 +147,7 @@ class DecisionTree (Tree):
             return
 
         # Choose split axis and value
-        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])        
+        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1], freqs=self.freqs)        
 
         # Growth checks 2 (no split found)
         if (self.split_val == 0) or (self.split_val == self.data_nb):

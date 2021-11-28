@@ -149,7 +149,7 @@ if RUN_KNN:
 ########## Tree
 RUN_TREE = True
 if RUN_TREE:
-    data_train_tree = data_train[:100]
+    data_train_tree = data_train[:10000]
     data_test_tree = data_test[:50000]
 
     tree = DecisionTree(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
