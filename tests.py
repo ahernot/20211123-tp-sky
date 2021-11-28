@@ -147,13 +147,15 @@ if RUN_KNN:
 
 
 ########## Tree
-RUN_TREE = False
+RUN_TREE = True
 if RUN_TREE:
-    data_train_tree = data_train[:10000]
+    data_train_tree = data_train[:100]
     data_test_tree = data_test[:50000]
 
     tree = Tree(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
     tree.grow()
+
+    print(tree)
 
     pred_tree = tree.eval_batch(data_test_tree[:, :-1])
     metrics_tree = Metrics(data_test_tree[:, -1], pred_tree)
@@ -162,12 +164,12 @@ if RUN_TREE:
 
 
 ########## Random Forest
-RANDOM_FOREST = True
+RANDOM_FOREST = False
 if RANDOM_FOREST:
     data_train_forest = data_train[:10000]
     data_test_forest = data_test[:100000]
 
-    forest = RandomForest(nb_trees=50, sample_size=1000, max_depth=5)
+    forest = RandomForest(nb_trees=50, sample_size=1000, min_homogeneity=0.96) #max_depth=5)
     forest.fit(vals=data_train_forest[:, :-1], labels=data_train_forest[:, -1])
 
     pred_forest = forest.eval_batch(vals=data_test_forest[:, :-1], verbose=False)
