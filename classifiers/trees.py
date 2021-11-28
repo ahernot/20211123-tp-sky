@@ -41,6 +41,25 @@ def choose_split (vals, labels, val_range=range(256)):
 
 class Tree:
 
+    def __init__ (self): pass
+
+    def __repr__ (self):
+        def print_tree_recur (depth, node_list, print_list):
+            if node_list == None: return print_list
+            for node in node_list:
+                type_ = node.type
+                indent = '\t' * depth
+                print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
+                try:
+                    print_list = print_tree_recur (depth+1, node.children, print_list)
+                except: pass
+            return print_list
+        return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
+
+
+
+class DecisionTree (Tree):
+
     def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
         """
         :param data: Node data (values and labels)
@@ -147,18 +166,7 @@ class Tree:
         # recursive function
         raise NotImplementedError
 
-    # def __repr__ (self):
-    #     def print_tree_recur (depth, node_list, print_list):
-    #         if node_list == None: return print_list
-    #         for node in node_list:
-    #             type_ = node.type
-    #             indent = '\t' * depth
-    #             print_list.append(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
-    #             try:
-    #                 print_list += print_tree_recur (depth+1, node.children, print_list)
-    #             except: pass
-    #         return print_list
-    #     return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
+    
 
 class KDTree:
 
