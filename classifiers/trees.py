@@ -26,7 +26,7 @@ def choose_split (vals, labels, val_range=range(256)):
         labels_split_B = labels[vals[:, axis] >= split_val]
         data_A_len = labels_split_A.shape[0]
         data_B_len = labels_split_B.shape[0]
-        if data_A_len == 0 or data_B_len == 0: return 1000
+        # if data_A_len == 0 or data_B_len == 0: return 1000
         return data_A_len * gini_bin(labels_split_A) + data_B_len * gini_bin(labels_split_B)
 
     axis_mins = list()
@@ -83,17 +83,23 @@ class Tree:
     def grow (self):
 
         # Growth checks 1
-        if self.depth == self.max_depth: return  # Max depth reached
-        if self.homogeneity >= self.min_homogeneity: return  # Max homogeneity reached
+        if self.depth == self.max_depth:
+            print('max depth reached')
+            return  # Max depth reached
+        if self.homogeneity >= self.min_homogeneity:
+            print('homogeneity target reached')
+            return  # Max homogeneity reached
 
         # Choose split axis and value
         self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])        
 
         # Growth checks 2
-        if (self.split_val == 0) or (self.split_val == self.data_nb): return
+        if (self.split_val == 0) or (self.split_val == self.data_nb):
+            print('no split found')
+            return
         
         # Update type to node
-        self.type = 'node'
+        if self.type == 'leaf': self.type = 'node'
 
         # Split data
         data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
@@ -136,6 +142,18 @@ class Tree:
 
         return np.array(pred_list)
 
+    # def __repr__ (self):
+    #     def print_tree_recur (depth, node_list, print_list):
+    #         if node_list == None: return print_list
+    #         for node in node_list:
+    #             type_ = node.type
+    #             indent = '\t' * depth
+    #             print_list.append(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
+    #             try:
+    #                 print_list += print_tree_recur (depth+1, node.children, print_list)
+    #             except: pass
+    #         return print_list
+    #     return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
 
 class KDTree:
 
@@ -183,18 +201,26 @@ class KDTree:
         if self.children[1].type == 'node': self.children[1].grow()
 
 
-
-def print_tree (tree: KDTree):
-
+def print_tree (tree):
     def print_tree_recur (depth, node_list):
         if node_list == None: return
-
         for node in node_list:
             type_ = node.type
             indent = '\t' * depth
-            print(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
+            print(f'{indent}{type_} – size={node.data.shape[0]}')
+            # print_list.append(f'{indent}{type_} – size={node.data.shape[0]}') #, depth={node.depth}')
             try:
                 print_tree_recur (depth+1, node.children)
             except: pass
-    
     print_tree_recur (depth=0, node_list=[tree])
+
+
+# data = np.array ([
+#     [9, 12, 10, 0],
+#     [84, 95, 109, 1],
+#     [82, 113, 146, 0]
+# ])
+
+# tree = Tree (data=data, dimension=3, max_depth=5, min_homogeneity=0.8)
+# tree.grow()
+# print_tree(tree)
