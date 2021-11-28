@@ -1,60 +1,83 @@
 import numpy as np
-from functions import gini_bin
+from functions import label_freqs, gini_bin
+
+# might be argmax and not argmin
+def choose_split (vals, labels, val_range=range(256)):
+
+    def split_score_axis (split_val, axis, vals, labels):  # on one of the 3 axes
+        labels_split_A = labels[vals[:, axis] < split_val]  # can be done with count_nonzero?
+        labels_split_B = labels[vals[:, axis] >= split_val]
+        data_A_len = labels_split_A.shape[0]
+        data_B_len = labels_split_B.shape[0]
+        return data_A_len * gini_bin(labels_split_A) + data_B_len * gini_bin(labels_split_B)
+
+    axis_mins = list()
+    for axis in range(3):
+        scores = [split_score_axis(split_val=x, axis=axis, vals=vals, labels=labels) for x in val_range]
+        axis_mins.append(np.argmin(scores))
+    axis = np.argmin(axis_mins)
+    split_val = axis_mins[axis]
+
+    return axis, split_val
+
 
 class Tree:
 
-    def __init__ (self, type_: str, data: np.ndarray, dimension: int, depth: int, parent):
-        self.parent = parent
+    def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
+        """
+        :param data: Node data (values and labels)
+        :param dimension: Tree dimension
+        :param max_depth: Tree max depth (depth values are in range(0, max_depth+1)), = -1 for unlimited
+        :param min_homogeneity: Breakoff homogeneity
+        :param type_: Node type
+        :param depth: Node depth
+        :param parent: Node parent
+        """
+
+        # Tree parameters
+        self.max_depth = max_depth
+        self.min_homogeneity = min_homogeneity
+        self.dimension = dimension
+
+        # Node data
         self.data = data
         self.data_nb = data.shape[0]
 
-        self.dimension = dimension
-        self.depth = depth
+        # Node parameters
         self.type = type_
+        self.depth = depth
+        self.parent = parent
+
+        self.freqs = label_freqs(self.data[:, -1])  # calculate label frequencies
+        if self.freqs[0] > self.freqs[1]: self.dominant_label, self.homogeneity = 0, self.freqs[0]
+        else: self.dominant_label, self.homogeneity = 1, self.freqs[1]
+
+        # Node children (filled if node!=leaf)
+        self.children = None
+        self.split_axis = None
+        self.split_val = None
 
     @classmethod
-    def root (cls, data: np.ndarray, dimension: int):
-        return cls (type_='root', data=data, dimension=dimension, depth=0, parent=None)
-
-    @classmethod
-    def node (cls, data: np.ndarray, dimension: int, parent):
-        if data.shape[0] <= 1: # or np.all(data[:, (parent.depth+1) % dimension] == data[0, (parent.depth+1) % dimension]):  # terminate growth if not enough data or same data (inseparable)
-            return cls.leaf(data, dimension, parent=parent)
-        else:
-            return cls(type_='node', data=data, dimension=dimension, depth=parent.depth+1, parent=parent)
-
-    @classmethod
-    def leaf (cls, data: np.ndarray, dimension: int, parent):
-        return cls(type_='leaf', data=data, dimension=dimension, depth=parent.depth+1, parent=parent)
+    def node (cls, data: np.ndarray, dimension: int, max_depth: int, parent):
+        return cls(data=data, dimension=dimension, max_depth=max_depth, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
-        
-        # choose growth axis (minimum search)
-        def choose_split (vals, labels, val_range=range(256)):
 
-            def split_score_axis (split_val, axis, vals, labels):  # on one of the 3 axes
-                labels_split_A = labels[vals[:, axis] < split_val]  # can be done with count_nonzero?
-                labels_split_B = labels[vals[:, axis] >= split_val]
-                data_A_len = labels_split_A.shape[0]
-                data_B_len = labels_split_B.shape[0]
-                return data_A_len * gini_bin(labels_split_A) + data_B_len * gini_bin(labels_split_B)
+        # Growth checks 1
+        if self.depth == self.max_depth: return  # Max depth reached
+        if self.homogeneity >= self.min_homogeneity: return
 
-            axis_mins = list()
-            for axis in range(3):
-                scores = [split_score_axis(split_val=x, axis=axis, vals=vals, labels=labels) for x in val_range]
-                axis_mins.append(np.argmin(scores))
-            axis = np.argmin(axis_mins)
-            split_val = axis_mins[axis]
+        # Choose split axis and value
+        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])
 
-            return axis, split_val
-
-
-        axis, split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])
-
+        # Growth checks 2
         # TODO: check if a split is empty!! or if only same value on axis => need to terminate (leaf)
+        
+        # Update type when grow
+        self.type_ = 'node'
 
-        data_split_A = self.data[self.data[:, axis] < split_val]
-        data_split_B = self.data[self.data[:, axis] >= split_val]
+        data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
+        data_split_B = self.data[self.data[:, self.split_axis] >= self.split_val]
 
         # Generate children
         self.children = [
@@ -62,13 +85,13 @@ class Tree:
             KDTree.node(data=data_split_B, dimension=self.dimension, parent=self)
         ]
 
-        # Grow children
-        if self.children[0].type == 'node': self.children[0].grow()
-        if self.children[1].type == 'node': self.children[1].grow()
+        # Grow children (changes type from leaf to node)
+        if data_split_A.shape[0] > 1: self.children[0].grow()
+        if data_split_B.shape[0] > 1: self.children[1].grow()
 
 
 
-
+# tree = Tree()
 
 
 
@@ -141,6 +164,8 @@ tree.grow()
 def print_tree (tree: KDTree):
 
     def print_tree_recur (depth, node_list):
+        if node_list == None: return
+
         for node in node_list:
             type_ = node.type
             indent = '\t' * depth
