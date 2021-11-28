@@ -78,7 +78,7 @@ class LDA:
         if k_0 > k_1: return 1
         else: return 0
 
-    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+    def eval_batch (self, data: np.ndarray, verbose=False):
         # Fake vectorisation
 
         pred_list = list()

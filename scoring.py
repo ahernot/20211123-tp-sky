@@ -6,7 +6,7 @@ NEGATIVE = 0
 
 class Metrics:
 
-    def __init__ (self, labels, predictions):
+    def __init__ (self, labels: np.ndarray, predictions: np.ndarray):
         # labels, predicitons as int
 
         # Labels

@@ -12,7 +12,7 @@ from classifiers.qda import QDA
 from classifiers.kernel import Kernel
 from classifiers.nearest_neighbors import NearestNeighbors, NearestNeighborsOptimised, NearestNeighborsOptimised2
 from classifiers.trees import Tree, KDTree, print_tree
-# from classifiers.random_forests import 
+from classifiers.random_forests import RandomForest
 
 from scoring import Metrics
 
@@ -139,7 +139,7 @@ if RUN_KNN:
     data_test_knn = data_test[:] # 100000
 
     knn = NearestNeighborsOptimised(nb_neighbors=100)
-    knn.fit (data_train_knn[:, :-1], data_train[:, -1])
+    knn.fit (data_train_knn[:, :-1], data_train_knn[:, -1])
     pred_knn = knn.eval_batch(data_test_knn[:, :-1], verbose=False)
     metrics_knn = Metrics(data_test_knn[:, -1], pred_knn)
     print(metrics_knn)
@@ -147,15 +147,29 @@ if RUN_KNN:
 
 
 ########## Tree
-RUN_TREE = True
+RUN_TREE = False
 if RUN_TREE:
     data_train_tree = data_train[:10000]
     data_test_tree = data_test[:50000]
 
-    tree = Tree(data=data_train_tree, dimension=3, min_homogeneity=0.7)
+    tree = Tree(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
     tree.grow()
 
     pred_tree = tree.eval_batch(data_test_tree[:, :-1])
     metrics_tree = Metrics(data_test_tree[:, -1], pred_tree)
     print(metrics_tree)
 
+
+
+########## Random Forest
+RANDOM_FOREST = True
+if RANDOM_FOREST:
+    data_train_forest = data_train[:10000]
+    data_test_forest = data_test[:100000]
+
+    forest = RandomForest(nb_trees=50, sample_size=1000, max_depth=5)
+    forest.fit(vals=data_train_forest[:, :-1], labels=data_train_forest[:, -1])
+
+    pred_forest = forest.eval_batch(vals=data_test_forest[:, :-1], verbose=True)
+    metrics_forest = Metrics(labels=data_test_forest[:, -1], predictions=pred_forest)
+    print(metrics_forest)

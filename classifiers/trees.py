@@ -84,18 +84,18 @@ class Tree:
 
         # Growth checks 1
         if self.depth == self.max_depth:
-            print('max depth reached')
-            return  # Max depth reached
+            # print('max depth reached')
+            return
         if self.homogeneity >= self.min_homogeneity:
-            print('homogeneity target reached')
-            return  # Max homogeneity reached
+            # print('homogeneity target reached')
+            return
 
         # Choose split axis and value
         self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])        
 
         # Growth checks 2
         if (self.split_val == 0) or (self.split_val == self.data_nb):
-            print('no split found')
+            # print('no split found')
             return
         
         # Update type to node
@@ -141,6 +141,11 @@ class Tree:
         print(f'Evaluating completed in {time_stop - time_start} seconds.')
 
         return np.array(pred_list)
+
+    
+    def get_depth (self):
+        # recursive function
+        raise NotImplementedError
 
     # def __repr__ (self):
     #     def print_tree_recur (depth, node_list, print_list):

@@ -34,7 +34,7 @@ class Kernel:
         if p_1 >= p_0: return 1
         else: return 0
 
-    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+    def eval_batch (self, data: np.ndarray, verbose=False):
         # Fake vectorisation
 
         pred_list = list()

@@ -55,7 +55,7 @@ class QDA:
 
         return int(delta_1 > delta_0)
 
-    def eval_batch (self, data: np.ndarray, activation=np.average, verbose=False):
+    def eval_batch (self, data: np.ndarray, verbose=False):
         # Fake vectorisation
 
         pred_list = list()
