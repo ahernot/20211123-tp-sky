@@ -152,7 +152,7 @@ if RUN_TREE:
     data_train_tree = data_train[:10000]
     data_test_tree = data_test[:50000]
 
-    tree = DecisionTree(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
+    tree = DecisionTreeOld(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
     tree.grow()
 
     print(tree)
