@@ -225,8 +225,12 @@ class DecisionTreeOld:
     def grow (self):
         # Growth checks 1 (tree satisfactory)
         if self.depth == self.max_depth:
+            print('max depth reached')
+            # self.type = 'leaf'
             return
         if self.homogeneity >= self.min_homogeneity:
+            print('homogeneity target reached')
+            # self.type = 'leaf'
             return
 
         # Choose split axis and value
@@ -234,6 +238,8 @@ class DecisionTreeOld:
 
         # Growth checks 2 (no split found)
         if (self.split_val == 0) or (self.split_val == self.data_nb):
+            print('no split found')
+            # self.type = 'leaf'
             return
         
         # Update type to node

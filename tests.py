@@ -124,7 +124,7 @@ if RUN_KERNEL:
     print(metrics_kernel)
 
 
-########## REGRESSION
+########## LOGISTIC REGRESSION
 
 
 
@@ -151,6 +151,9 @@ if RUN_TREE:
     data_train_tree = data_train[:10000]
     data_test_tree = data_test[:50000]
 
+    # print(np.any(data_train_tree[:, -1] == 0))
+    # print(np.any(data_train_tree[:, -1] == 1))
+
     tree = DecisionTreeOld(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
     tree.grow()
 
@@ -167,6 +170,7 @@ RANDOM_FOREST = False
 if RANDOM_FOREST:
     data_train_forest = data_train[:10000]
     data_test_forest = data_test[:100000]
+
 
     forest = RandomForest(nb_trees=50, sample_size=1000, min_homogeneity=0.96) #max_depth=5)
     forest.fit(vals=data_train_forest[:, :-1], labels=data_train_forest[:, -1])
