@@ -4,19 +4,25 @@ import numpy as np
 from functions import label_freqs, gini_bin
 
 
-def choose_split (vals, labels, freqs, val_range = range(256)):
+
+
+def choose_split (vals: np.ndarray, labels: np.ndarray, val_range = range(1, 256)):
 
     def split_score_axis (split_val, axis, vals, labels):  # on one of the 3 axes
         labels_split_A = labels[vals[:, axis] < split_val]  # can be done with count_nonzero?
         labels_split_B = labels[vals[:, axis] >= split_val]
         data_A_len = labels_split_A.shape[0]
         data_B_len = labels_split_B.shape[0]
-        return data_A_len * gini_bin(*freqs) + data_B_len * gini_bin(*freqs)
+        if data_A_len == 0 or data_B_len == 0: return 1000000
+        return data_A_len * gini_bin(labels_split_A) + data_B_len * gini_bin(labels_split_B)
 
     axis_mins = list()
     for axis in range(3):
         scores = [split_score_axis(split_val=x, axis=axis, vals=vals, labels=labels) for x in val_range]
+        # print(scores)
         axis_mins.append(np.argmin(scores))
+
+    print(axis_mins)
     axis = np.argmin(axis_mins)
     split_val = axis_mins[axis]
 
@@ -68,7 +74,7 @@ class Tree:
             for node in node_list:
                 type_ = node.type
                 indent = '\t' * depth
-                print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
+                print_list.append(f'{indent}{type_} – size={node.data.shape[0]} - splitting along {node.split_val} on axis {node.split_axis}')
                 try:
                     print_list = print_tree_recur (depth+1, node.children, print_list)
                 except: pass
@@ -76,7 +82,7 @@ class Tree:
         return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
 
     def eval (self, x):
-        if self.type == 'leaf':
+        if self.type != 'node':
             return self.dominant_label
         else:
             if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
@@ -143,7 +149,8 @@ class DecisionTree (Tree):
             return
 
         # Choose split axis and value
-        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1], freqs=self.freqs)        
+        self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])
+        print(f'Gonna split along {self.split_val} on axis {self.split_axis}')       
 
         # Growth checks 2 (no split found)
         if (self.split_val == 0) or (self.split_val == self.data_nb):
@@ -336,3 +343,31 @@ class KDTree (Tree):
         # Grow children (changes type from leaf to node)
         self.children[0].grow()
         self.children[1].grow()
+
+
+
+# data = np.array([
+#     [0, 1, 2, 0],
+#     [1, 2, 3, 0],
+#     [0, 3, 4, 1],
+#     [9, 3, 2, 1],
+#     [8, 3, 4, 0],
+#     [8, 5, 4, 1],
+#     [8, 3, 1, 1],
+#     [4, 5, 4, 0],
+#     [0, 3, 1, 0],
+#     [9, 3, 9, 1],
+#     [1, 1, 1, 0],
+#     [2, 1, 3, 0],
+#     [1, 7, 9, 0],
+#     [3, 3, 2, 1],
+#     [7, 2, 1, 1]
+# ])
+
+
+# # tree = KDTree.root(data=data, dimension=3)
+# # tree.grow()
+
+# tree = DecisionTree(data=data, dimension=3, max_depth=10)
+# tree.grow()
+# print(tree)

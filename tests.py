@@ -154,7 +154,7 @@ if RUN_TREE:
     # print(np.any(data_train_tree[:, -1] == 0))
     # print(np.any(data_train_tree[:, -1] == 1))
 
-    tree = DecisionTreeOld(data=data_train_tree, dimension=3, min_homogeneity=0.95)#0.7)
+    tree = DecisionTree(data=data_train_tree, dimension=3, max_depth=10)# min_homogeneity=0.95)#0.7)
     tree.grow()
 
     print(tree)
