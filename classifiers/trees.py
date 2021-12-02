@@ -13,24 +13,42 @@ def choose_split (vals: np.ndarray, labels: np.ndarray, val_range = range(1, 256
         labels_split_B = labels[vals[:, axis] >= split_val]
         data_A_len = labels_split_A.shape[0]
         data_B_len = labels_split_B.shape[0]
-        if data_A_len == 0 or data_B_len == 0: return 1000000
+        if data_A_len == 0 or data_B_len == 0: return None
         return data_A_len * gini_bin(labels_split_A) + data_B_len * gini_bin(labels_split_B)
 
-    axis_mins = list()
+    scores_dict = dict()
+    scores = list()
     for axis in range(3):
-        scores = [split_score_axis(split_val=x, axis=axis, vals=vals, labels=labels) for x in val_range]
 
-        # Get argmin of axis score
-        argmin = np.argmin(scores)
-        # if (argmin == 0) or (argmin == vals.shape[-1] - 1):
-        #     argmin = None
-        axis_mins.append(argmin)
+        # Compute scores for all splits
+        for x in val_range:
+            score = split_score_axis(split_val=x, axis=axis, vals=vals, labels=labels)
+            if score:
+                scores.append((score, x))
 
-    print(axis_mins)
-    axis = np.argmin(axis_mins)
-    split_val = axis_mins[axis]
+        # Sort scores (ASC order)
+        scores.sort()
 
-    return axis, split_val
+        # Get split_val with minimum score for the axis
+        if not scores:
+            argmin = None
+        else:
+            argmin = scores[0][1]
+
+        # Add to axis sorting
+        if argmin and (argmin != 0) and (argmin != vals.shape[-1] - 1):
+            try:
+                scores_dict [argmin] .append(axis)
+            except KeyError:
+                scores_dict[argmin] = [axis]
+
+    if not scores_dict: return None, None  # no splits found
+
+    split_val = min( list(scores_dict.keys()) )
+    split_axes = scores_dict[split_val]
+    split_axis = split_axes[0]  # choice, when multiple equivalent splits
+
+    return split_axis, split_val
 
 
 
@@ -77,8 +95,11 @@ class Tree:
             if node_list == None: return print_list
             for node in node_list:
                 type_ = node.type
+
                 indent = '\t' * depth
-                print_list.append(f'{indent}{type_} – size={node.data.shape[0]} - splitting along {node.split_val} on axis {node.split_axis}')
+                print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
+                if type_ != 'leaf': print_list[-1] += f' - splitting along {node.split_val} on axis {node.split_axis}'
+                
                 try:
                     print_list = print_tree_recur (depth+1, node.children, print_list)
                 except: pass
@@ -144,22 +165,17 @@ class DecisionTree (Tree):
         return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
-        print('growing')
 
         # Growth checks 1 (tree satisfactory)
-        if self.depth == self.max_depth:
-            return
-        if self.homogeneity >= self.min_homogeneity:
-            return
+        if self.depth == self.max_depth: return
+        if self.homogeneity >= self.min_homogeneity: return
 
         # Choose split axis and value
         self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])
         print(f'Gonna split along {self.split_val} on axis {self.split_axis}')       
 
         # Growth checks 2 (no split found)
-        if (self.split_val == 0) or (self.split_val == self.data_nb - 1):
-            print('split aborted (empty set)')
-            return
+        if (self.split_axis == None) or (self.split_val == None): return
         
         # Update type to node
         if self.type == 'leaf': self.type = 'node'
@@ -167,6 +183,7 @@ class DecisionTree (Tree):
         # Split data
         data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
         data_split_B = self.data[self.data[:, self.split_axis] >= self.split_val]
+        print(f'{self.data.shape} => {data_split_A.shape} & {data_split_B.shape}')
 
         # Generate children
         self.children = [
