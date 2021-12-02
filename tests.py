@@ -153,13 +153,10 @@ if RUN_TREE:
     data_train_tree = data_train[:10000]
     data_test_tree = data_test[:50000]
 
-    # print(np.any(data_train_tree[:, -1] == 0))
-    # print(np.any(data_train_tree[:, -1] == 1))
-
-    tree = DecisionTree(data=data_train_tree, dimension=3, max_depth=10)# min_homogeneity=0.95)#0.7)
+    tree = DecisionTree(data=data_train_tree, dimension=3, max_depth=5)#, min_homogeneity=0.995)
     tree.grow()
 
-    print(tree)
+    # print(tree)
 
     pred_tree = tree.eval_batch(data_test_tree[:, :-1])
     metrics_tree = Metrics(data_test_tree[:, -1], pred_tree)

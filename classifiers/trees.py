@@ -91,14 +91,16 @@ class Tree:
         self.split_val  = None
 
     def __repr__ (self):
+        indent_char = ' '
         def print_tree_recur (depth, node_list, print_list):
             if node_list == None: return print_list
             for node in node_list:
                 type_ = node.type
 
-                indent = '\t' * depth
+                indent = indent_char * depth
                 print_list.append(f'{indent}{type_} – size={node.data.shape[0]}')
                 if type_ != 'leaf': print_list[-1] += f' - splitting along {node.split_val} on axis {node.split_axis}'
+                else: print_list[-1] += f' - val={node.dominant_label} ({round(100 * node.freqs[node.dominant_label], 3)}%) - {node.stop_reason}'
                 
                 try:
                     print_list = print_tree_recur (depth+1, node.children, print_list)
@@ -107,7 +109,7 @@ class Tree:
         return '\n'.join( print_tree_recur (depth=0, node_list=[self], print_list=list()) )
 
     def eval (self, x):
-        if self.type != 'node':
+        if self.type == 'leaf' or self.children == None:
             return self.dominant_label
         else:
             if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
@@ -167,15 +169,20 @@ class DecisionTree (Tree):
     def grow (self):
 
         # Growth checks 1 (tree satisfactory)
-        if self.depth == self.max_depth: return
-        if self.homogeneity >= self.min_homogeneity: return
+        if self.depth == self.max_depth:
+            self.stop_reason = 'max depth reached'
+            return
+        if self.homogeneity >= self.min_homogeneity:
+            self.stop_reason = 'satisfactory homogeneity reached'
+            return
 
         # Choose split axis and value
         self.split_axis, self.split_val = choose_split (vals=self.data[:, :-1], labels=self.data[:, -1])
-        print(f'Gonna split along {self.split_val} on axis {self.split_axis}')       
 
         # Growth checks 2 (no split found)
-        if (self.split_axis == None) or (self.split_val == None): return
+        if (self.split_axis == None) or (self.split_val == None):
+            self.stop_reason = 'no split found'
+            return
         
         # Update type to node
         if self.type == 'leaf': self.type = 'node'
@@ -183,7 +190,6 @@ class DecisionTree (Tree):
         # Split data
         data_split_A = self.data[self.data[:, self.split_axis] < self.split_val]
         data_split_B = self.data[self.data[:, self.split_axis] >= self.split_val]
-        print(f'{self.data.shape} => {data_split_A.shape} & {data_split_B.shape}')
 
         # Generate children
         self.children = [
@@ -365,32 +371,3 @@ class KDTree (Tree):
         # Grow children (changes type from leaf to node)
         self.children[0].grow()
         self.children[1].grow()
-
-
-
-# data = np.array([
-#     [0, 1, 2, 0],
-#     [1, 2, 3, 0],
-#     [0, 3, 4, 1],
-#     [9, 3, 2, 1],
-#     [8, 3, 4, 0],
-#     [8, 5, 4, 1],
-#     [8, 3, 1, 1],
-#     [4, 5, 4, 0],
-#     [0, 3, 1, 0],
-#     [9, 3, 9, 1],
-#     [1, 1, 1, 0],
-#     [2, 1, 3, 0],
-#     [1, 7, 9, 0],
-#     [3, 3, 2, 1],
-#     [7, 2, 1, 1]
-# ])
-
-
-# # tree = KDTree.root(data=data, dimension=3)
-# # tree.grow()
-
-# tree = DecisionTree(data=data, dimension=3, max_depth=10)
-# tree.grow()
-# print(tree)
-
