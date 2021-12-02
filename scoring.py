@@ -28,16 +28,35 @@ class Metrics:
         self.neg = self.fpos + self.tneg
 
         # Rates
-        self.tpr = self.tpos / self.pos
-        self.tnr = self.tneg / self.neg
-        self.fpr = self.fpos / self.neg
-        self.fnr = self.fneg / self.pos
+        if self.pos > 0:
+            self.tpr = self.tpos / self.pos
+            self.fnr = self.fneg / self.pos
+        else:
+            self.tpr, self.fnr = float('nan'), float('nan')
+        
+        if self.neg > 0:
+            self.tnr = self.tneg / self.neg
+            self.fpr = self.fpos / self.neg
+        else:
+            self.tnr, self.fpr = float('nan'), float('nan')
+        
 
         # Other metrics
-        self.ppv = self.tpos / (self.tpos + self.fpos)  # precision
-        self.fov = self.fpos / (self.fpos + self.tneg)  # false omission rate
-        self.err = (self.fneg + self.fpos) / (self.neg + self.pos)  # error rate
-        self.acc = (self.tneg + self.tpos) / (self.neg + self.pos)  # accuracy
+        if self.pos > 0:
+            self.ppv = self.tpos / (self.tpos + self.fpos)  # precision
+        else:
+            self.ppv = float('nan')
+        
+        if self.fpos + self.tneg > 0:
+            self.fov = self.fpos / (self.fpos + self.tneg)  # false omission rate
+        else:
+            self.fov = float('nan')
+        
+        if self.neg + self.pos > 0:
+            self.err = (self.fneg + self.fpos) / (self.neg + self.pos)  # error rate
+            self.acc = (self.tneg + self.tpos) / (self.neg + self.pos)  # accuracy
+        else:
+            self.err, self.acc = float('nan'), float('nan')
 
         # Scores
         self.f1 = self.f_score()
@@ -76,19 +95,22 @@ class Metrics:
         # Matthews coefficient
         num = self.tpos * self.tneg - self.fpos * self.fneg
         den = (self.tpos + self.fpos) * (self.tpos + self.fneg) * (self.tneg + self.fpos) * (self.tneg + self.fneg)
-        return num / den**0.5
+        if den > 0: return num / den**0.5
+        else: return float('nan')
  
     def f_score (self, beta = 1):
         ppv = self.ppv
         tpr = self.tpr
         num = ppv * tpr
         den = beta**2 * ppv + tpr
-        return (1 + beta**2) * num / den
+        if den != 0: return (1 + beta**2) * num / den
+        else: return float('nan')
 
     def __kappa (self):
         num = 2 * (self.tpos * self.tneg - self.fneg * self.fpos)
         den = (self.tpos + self.fpos) * (self.fpos + self.tneg) + (self.tpos + self.fneg) * (self.fneg + self.tneg)
-        return num / den
+        if den != 0: return num / den
+        else: return float('nan')
 
 
 # from sklearn.datasets import make_classification
