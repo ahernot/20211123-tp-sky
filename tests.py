@@ -16,6 +16,7 @@ from classifiers.random_forests import RandomForest
 
 from scoring import Metrics
 
+# I am taking a break from girls
 
 
 
@@ -125,8 +126,9 @@ if RUN_KERNEL:
 
 
 ########## LOGISTIC REGRESSION
-
-
+LOG_REG = False
+if LOG_REG:
+    pass
 
 
 

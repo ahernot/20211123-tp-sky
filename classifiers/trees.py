@@ -19,8 +19,12 @@ def choose_split (vals: np.ndarray, labels: np.ndarray, val_range = range(1, 256
     axis_mins = list()
     for axis in range(3):
         scores = [split_score_axis(split_val=x, axis=axis, vals=vals, labels=labels) for x in val_range]
-        # print(scores)
-        axis_mins.append(np.argmin(scores))
+
+        # Get argmin of axis score
+        argmin = np.argmin(scores)
+        # if (argmin == 0) or (argmin == vals.shape[-1] - 1):
+        #     argmin = None
+        axis_mins.append(argmin)
 
     print(axis_mins)
     axis = np.argmin(axis_mins)
@@ -153,7 +157,8 @@ class DecisionTree (Tree):
         print(f'Gonna split along {self.split_val} on axis {self.split_axis}')       
 
         # Growth checks 2 (no split found)
-        if (self.split_val == 0) or (self.split_val == self.data_nb):
+        if (self.split_val == 0) or (self.split_val == self.data_nb - 1):
+            print('split aborted (empty set)')
             return
         
         # Update type to node
@@ -371,3 +376,4 @@ class KDTree (Tree):
 # tree = DecisionTree(data=data, dimension=3, max_depth=10)
 # tree.grow()
 # print(tree)
+
