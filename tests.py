@@ -16,7 +16,6 @@ from classifiers.random_forests import RandomForest
 
 from scoring import Metrics
 
-# I am taking a break from girls
 
 
 
