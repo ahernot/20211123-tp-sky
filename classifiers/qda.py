@@ -3,7 +3,7 @@ import numpy as np
 
 class QDA:
 
-    def __init__ (self, data):
+    def __init__ (self):#, data):
         """
         Quadratic discriminant analysis (QDA)
         """
