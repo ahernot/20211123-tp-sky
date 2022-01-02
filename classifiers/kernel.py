@@ -47,3 +47,37 @@ class Kernel:
                 print(f'Progress: {round(100*i/data_nb, 6)}%')
 
         return np.array(pred_list)
+
+
+
+class Kernel_bin:
+
+    def __init__ (self, func: Callable):
+        self.__func = func  # kernel func to ponderate the distances (centered on 0)
+    
+    def fit (self, X: np.ndarray, y: np.ndarray):
+        """
+        Fit classifier to training data
+        :param X: training data
+        :param y: training data labels
+        """
+
+        self.X = X
+
+        # Extract 0 and 1 classes
+        self.X_0 = X[y == 0]
+        self.X_1 = X[y == 1]
+
+
+        # X_0.shape[0]
+        # X_1.shape[0]
+
+    def predict (self, X: np.ndarray):
+        
+        np.ones()
+
+        self.__func (self.X_0)
+        pass
+
+
+
