@@ -55,7 +55,7 @@ def choose_split (vals: np.ndarray, labels: np.ndarray, val_range = range(1, 256
 
 class Tree:
 
-    def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
+    def __init__ (self, data: np.ndarray, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
         """
         :param data: Node data (values and labels)
         :param dimension: Tree dimension
@@ -69,7 +69,6 @@ class Tree:
         # Tree parameters
         self.max_depth       = max_depth
         self.min_homogeneity = min_homogeneity
-        self.dimension       = dimension
 
         # Node data
         self.data    = data
@@ -91,7 +90,7 @@ class Tree:
         self.split_val  = None
 
     def __repr__ (self):
-        indent_char = ' '
+        indent_char = '\t'  # ' '
         def print_tree_recur (depth, node_list, print_list):
             if node_list == None: return print_list
             for node in node_list:
@@ -141,7 +140,7 @@ class Tree:
 
 class DecisionTree (Tree):
 
-    def __init__ (self, data: np.ndarray, dimension: int, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
+    def __init__ (self, data: np.ndarray, max_depth: int = -1, min_homogeneity: float = 1., type_: str = 'root', depth: int = 0, parent = None):
         """
         :param data: Node data (values and labels)
         :param dimension: Tree dimension
@@ -154,7 +153,6 @@ class DecisionTree (Tree):
 
         super(DecisionTree, self).__init__(
             data=data,
-            dimension=dimension,
             max_depth=max_depth,
             min_homogeneity=min_homogeneity,
             type_=type_,
@@ -163,8 +161,8 @@ class DecisionTree (Tree):
         )
 
     @classmethod
-    def node (cls, data: np.ndarray, dimension: int, max_depth: int, min_homogeneity: float, parent):
-        return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
+    def node (cls, data: np.ndarray, max_depth: int, min_homogeneity: float, parent):
+        return cls(data=data, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
 
@@ -193,8 +191,8 @@ class DecisionTree (Tree):
 
         # Generate children
         self.children = [
-            DecisionTree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
-            DecisionTree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
+            DecisionTree.node(data=data_split_A, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
+            DecisionTree.node(data=data_split_B, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
         ]
 
         # Grow children (changes type from leaf to node)
@@ -208,7 +206,6 @@ class KDTree (Tree):
 
         super(KDTree, self).__init__(
             data=data,
-            dimension=dimension,
             max_depth=-1,
             min_homogeneity=1.,
             type_=type_,
@@ -216,12 +213,13 @@ class KDTree (Tree):
             parent=parent
         )
 
+        self.dimension = dimension
+
     @classmethod
     def node (cls, data: np.ndarray, dimension: int, parent):
         return cls(data=data, dimension=dimension, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
-        print('gr')
         
         # Growth checks 1 (growth completion)
         if self.depth == self.max_depth:
@@ -234,7 +232,9 @@ class KDTree (Tree):
         self.split_val = np.median (self.data[:, self.split_axis])  # can use median of smaller random sample instead
 
         # Growth checks 2 (no split found)
-        if (self.split_val == 0) or (self.split_val == self.data_nb):
+        # if (self.split_val == 0) or (self.split_val == self.data_nb):
+        #     return
+        if self.data_nb <= 1:
             return
 
         # Update type to node
