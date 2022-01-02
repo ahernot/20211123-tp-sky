@@ -51,7 +51,7 @@ def choose_split (vals: np.ndarray, labels: np.ndarray, val_range = range(1, 256
     return split_axis, split_val
 
 
-
+# TODO: add __getitem__ ['01000110'] or __call__(0, 1, 0, 0, 0, 1, 1, 0)
 
 class Tree:
 
@@ -113,7 +113,7 @@ class Tree:
             return self.dominant_label
         else:
             if x[self.split_axis] < self.split_val: return self.children[0].eval(x)
-            else:                                   return self.children[1].eval(x)
+            else:                                   return self.children[1].eval(x)        
 
     def eval_batch (self, data: np.ndarray, verbose=False):
         # Fake vectorisation
@@ -217,12 +217,13 @@ class KDTree (Tree):
         )
 
     @classmethod
-    def node (cls, data: np.ndarray, dimension: int, max_depth: int, min_homogeneity: float, parent):
-        return cls(data=data, dimension=dimension, max_depth=max_depth, min_homogeneity=min_homogeneity, type_='leaf', depth=parent.depth+1, parent=parent)
+    def node (cls, data: np.ndarray, dimension: int, parent):
+        return cls(data=data, dimension=dimension, type_='leaf', depth=parent.depth+1, parent=parent)
 
     def grow (self):
-
-        # Growth checks 1
+        print('gr')
+        
+        # Growth checks 1 (growth completion)
         if self.depth == self.max_depth:
             return
         if self.homogeneity >= self.min_homogeneity:
@@ -230,7 +231,7 @@ class KDTree (Tree):
 
         # Choose split axis and value
         self.split_axis = self.depth % self.dimension
-        self.split_val = np.median (self.data[:, self.split_axis])
+        self.split_val = np.median (self.data[:, self.split_axis])  # can use median of smaller random sample instead
 
         # Growth checks 2 (no split found)
         if (self.split_val == 0) or (self.split_val == self.data_nb):
@@ -245,8 +246,8 @@ class KDTree (Tree):
 
         # Generate children
         self.children = [
-            DecisionTree.node(data=data_split_A, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self),
-            DecisionTree.node(data=data_split_B, dimension=self.dimension, max_depth=self.max_depth, min_homogeneity=self.min_homogeneity, parent=self)
+            KDTree.node(data=data_split_A, dimension=self.dimension, parent=self),
+            KDTree.node(data=data_split_B, dimension=self.dimension, parent=self)
         ]
 
         # Grow children (changes type from leaf to node)
