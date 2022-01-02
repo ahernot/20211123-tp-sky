@@ -52,6 +52,8 @@ def choose_split (vals: np.ndarray, labels: np.ndarray, val_range = range(1, 256
 
 
 # TODO: add __getitem__ ['01000110'] or __call__(0, 1, 0, 0, 0, 1, 1, 0)
+# TODO: remove self.data from tree?
+# TODO: k-NN: check out https://developpaper.com/knn-principle-and-python-code-implementation/
 
 class Tree:
 
