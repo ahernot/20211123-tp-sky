@@ -1,112 +1,44 @@
 import numpy as np
 
+class QDA_bin:
 
-class QDA_old:
-
-    def __init__ (self):#, data):
-        """
-        Quadratic discriminant analysis (QDA)
-        """
-        pass
-        
-    def fit (self, data: np.ndarray, labels: np.ndarray, verbose=True):
-        # Extract 0 and 1 classes
-        mask_0 = (labels == 0)
-        data_0 = data[mask_0]
-        mask_1 = (labels == 1)
-        data_1 = data[mask_1]
-
-        # Calculate covariance matrices from training data
-        self.sigma_0 = np.cov (data_0.T)
-        self.sigma_1 = np.cov (data_1.T)
-
-        # Calculate averages from training data
-        self.mu_0 = np.average(data_0, axis=0)
-        self.mu_1 = np.average(data_1, axis=0)
-
-
-        # Calculate estimated densities
-        self.pi_0 = data_0.shape[0]
-        self.pi_1 = data_1.shape[0]
-
-
-        self.a_0 = -0.5 * (np.log(np.linalg.det(self.sigma_0)))
-        self.a_1 = -0.5 * (np.log(np.linalg.det(self.sigma_1)))
-
-    def eval (self, x):
-
-        b_0 = -0.5 * np.dot (
-            np.dot (
-                (x - self.mu_0).T,
-                np.linalg.inv(self.sigma_0)
-            ),
-            x - self.mu_0
-        )
-        delta_0 = self.a_0 + b_0 + np.log(self.pi_0)
-
-        b_1 = -0.5 * np.dot (
-            np.dot (
-                (x - self.mu_1).T,
-                np.linalg.inv(self.sigma_1)
-            ),
-            x - self.mu_1
-        )
-        delta_1 = self.a_1 + b_1 + np.log(self.pi_1)
-
-        return int(delta_1 > delta_0)
-
-    def eval_batch (self, data: np.ndarray, verbose=False):
-        # Fake vectorisation
-
-        pred_list = list()
-        data_nb = data.shape[0]
-
-        for i, x in enumerate(data):
-            pred_list .append(self.eval(x))
-
-            if verbose:
-                print(f'Progress: {round(100*i/data_nb, 6)}%')
-
-        return np.array(pred_list)
-
-
-
-
-def extract_classes_bin (data, labels, class_0 = 0, class_1 = 1):
-    mask_0 = (labels == class_0)
-    data_0 = data[mask_0]
-    mask_1 = (labels == class_1)
-    data_1 = data[mask_1]
-
-    return data_0, data_1
-
-
-
-from numpy.linalg import inv, det
-
-class QDA:
-
-    def __init__ (self):
-        def predit_unit (x: np.ndarray):
-            dif_0 = x - self.mu_0
-            dif_1 = x - self.mu_1
-            likelihood_0 = np.dot( dif_0.T, np.dot( inv(self.sigma_0), dif_0) ) + np.log( det(self.sigma_0) )
-            likelihood_1 = np.dot( dif_1.T, np.dot( inv(self.sigma_1), dif_1) ) + np.log( det(self.sigma_1) )
-            return int(likelihood_0 > likelihood_1)
-        self.predict_vect = np.vectorize(predit_unit)
-
+    def __init__ (self): pass
+    
     def fit (self, X: np.ndarray, y: np.ndarray):
-        # Extract 0 and 1 classes
-        data_0, data_1 = extract_classes_bin (X, y)
+        """
+        Fit classifier to training data
+        :param X: training data
+        :param y: training data labels
+        """
 
-        # Calculate covariance matrices from training data
-        self.sigma_0 = np.cov (data_0.T)
-        self.sigma_1 = np.cov (data_1.T)
+        # Extract 0 and 1 classes
+        X_0 = X[y == 0]
+        X_1 = X[y == 1]
+
+        # Covariance matrices
+        self.sigma_0 = np.cov (X_0.T)
+        self.sigma_1 = np.cov (X_1.T)
+        self.sigma_0_inv = np.linalg.inv (self.sigma_0)
+        self.sigma_1_inv = np.linalg.inv (self.sigma_1)
 
         # Calculate averages from training data
-        self.mu_0 = np.average(data_0, axis=0)
-        self.mu_1 = np.average(data_1, axis=0)
+        self.mu_0 = np.average(X_0, axis=0)
+        self.mu_1 = np.average(X_1, axis=0)
+
+        # Estimate densities
+        self.pi_0 = X_0.shape[0] / X.shape[0]
+        self.pi_1 = X_1.shape[0] / X.shape[0]
+
+        # Pre-calculate blocks (program optimisation)
+        self.lpi_0 = np.log(self.pi_0)  # log(pi0)
+        self.lpi_1 = np.log(self.pi_1)  # log(pi1)
+        self.mu0_isig0 = np.dot(self.mu_0.T, self.sigma_0_inv)  # mu0.T * sigma0^-1
+        self.mu1_isig1 = np.dot(self.mu_1.T, self.sigma_1_inv)  # mu1.T * sigma1^-1
 
 
     def predict (self, X: np.ndarray):
-        return self.predict_vect(X)
+        S_0 = np.dot(self.mu0_isig0 , self.mu_0) -2 * np.dot(self.mu0_isig0 , X.T) - 2 * self.lpi_0
+        S_1 = np.dot(self.mu1_isig1 , self.mu_1) -2 * np.dot(self.mu1_isig1 , X.T) - 2 * self.lpi_1
+
+        res = (S_0 > S_1).astype(np.int)
+        return res
