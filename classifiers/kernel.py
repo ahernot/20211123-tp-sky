@@ -50,6 +50,8 @@ class Kernel:
 
 
 
+
+
 class Kernel_bin:
 
     def __init__ (self, func: Callable):
@@ -62,19 +64,30 @@ class Kernel_bin:
         :param y: training data labels
         """
 
-        self.X = X
+        self.X_train = X
+        self.N_train = X.shape[0]
 
         # Extract 0 and 1 classes
         self.X_0 = X[y == 0]
         self.X_1 = X[y == 1]
+
+        self.N0_train = self.X_0.shape[0]
+        self.N1_train = self.X_1.shape[1]
 
 
         # X_0.shape[0]
         # X_1.shape[0]
 
     def predict (self, X: np.ndarray):
+
+
+        N_test = X.shape[0]
+        N_train
         
-        np.ones()
+
+
+        np.tile(X, ())
+        np.tile(X, n)
 
         self.__func (self.X_0)
         pass
