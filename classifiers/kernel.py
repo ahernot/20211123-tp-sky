@@ -68,29 +68,52 @@ class Kernel_bin:
         self.N_train = X.shape[0]
 
         # Extract 0 and 1 classes
-        self.X_0 = X[y == 0]
-        self.X_1 = X[y == 1]
+        self.X0_train = X[y == 0]
+        self.X1_train = X[y == 1]
 
-        self.N0_train = self.X_0.shape[0]
-        self.N1_train = self.X_1.shape[1]
-
-
-        # X_0.shape[0]
-        # X_1.shape[0]
+        self.N0_train = self.X0_train.shape[0]
+        self.N1_train = self.X1_train.shape[1]
 
     def predict (self, X: np.ndarray):
-
-
         N_test = X.shape[0]
-        N_train
-        
+
+        # Tile X_train
+        X_train_tiled = np.tile (self.X_train, (N_test, 1, 1))  # useless?
+        X0_train_tiled = np.tile (self.X0_train, (N_test, 1, 1))
+        X1_train_tiled = np.tile (self.X1_train, (N_test, 1, 1))
+
+        # Tile X_test
+        X_test_tiled = np.transpose( np.tile (X, (self.N_train, 1, 1)), axes=(1, 0, 2))  # useless?
+        X_test_tiled_0 = np.transpose( np.tile (X, (self.N0_train, 1, 1)), axes=(1, 0, 2))  # Replicate as many times as there are train samples, and transpose (flip on its side)
+        X_test_tiled_1 = np.transpose( np.tile (X, (self.N1_train, 1, 1)), axes=(1, 0, 2))
+
+        # Calculate element-wise distances (compress RGB information)
+        dist_all = np.linalg.norm(X_train_tiled  - X_test_tiled  , axis=2)
+        dist_0   = np.linalg.norm(X0_train_tiled - X_test_tiled_0, axis=2)
+        dist_1   = np.linalg.norm(X1_train_tiled - X_test_tiled_1, axis=2)
+
+        # Apply kernel function weighing
+        # HERE
+
+        # Sum across training datapoints
+        sum_all = np.sum(dist_all, axis=1)
+        sum_0   = np.sum(dist_0  , axis=1)
+        sum_1   = np.sum(dist_1  , axis=1)
+
+        p0 = sum_0 / sum_all  # each one is a sum of the distances on all the train vectors of class 0; each one is a normalising factor for the corresponding x_test vector
+        p1 = sum_1 / sum_all
+
+        # Estimate labels (using Bayes' estimation rule)
+        y_pred = (p0 < p1).astype(int)
+
+        return y_pred
 
 
-        np.tile(X, ())
-        np.tile(X, n)
 
-        self.__func (self.X_0)
-        pass
+# def KERNEL_FUNC (x: np.ndarray):
+#     return np.exp(-1 * np.power(x, 2))
 
-
-
+# def KERNEL_CAPPED (x: np.ndarray):  # 1/x function, capped in [-1, 1]
+#     ret = np.ones(x.shape[0])
+#     ret[x <= 1] = np.abs(1 / x)
+#     return ret
