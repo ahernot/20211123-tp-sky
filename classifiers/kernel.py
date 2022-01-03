@@ -72,20 +72,29 @@ class Kernel_bin:
         self.X1_train = X[y == 1]
 
         self.N0_train = self.X0_train.shape[0]
-        self.N1_train = self.X1_train.shape[1]
+        self.N1_train = self.X1_train.shape[0]
 
     def predict (self, X: np.ndarray):
         N_test = X.shape[0]
 
+        # randomly select n train vectors
+        N_train_sel = 10
+        index_0 = np.random.choice(self.N0_train, N_train_sel, replace=False)
+        index_1 = np.random.choice(self.N1_train, N_train_sel, replace=False)
+
+        X0_train_sel = self.X0_train[index_0]
+        X1_train_sel = self.X1_train[index_1]
+        X_train_sel = np.concatenate((X0_train_sel, X1_train_sel), axis=0)
+
         # Tile X_train
-        X_train_tiled = np.tile (self.X_train, (N_test, 1, 1))  # useless?
-        X0_train_tiled = np.tile (self.X0_train, (N_test, 1, 1))
-        X1_train_tiled = np.tile (self.X1_train, (N_test, 1, 1))
+        X_train_tiled = np.tile (X_train_sel, (N_test, 1, 1))  # useless?
+        X0_train_tiled = np.tile (X0_train_sel, (N_test, 1, 1))
+        X1_train_tiled = np.tile (X1_train_sel, (N_test, 1, 1))
 
         # Tile X_test
-        X_test_tiled = np.transpose( np.tile (X, (self.N_train, 1, 1)), axes=(1, 0, 2))  # useless?
-        X_test_tiled_0 = np.transpose( np.tile (X, (self.N0_train, 1, 1)), axes=(1, 0, 2))  # Replicate as many times as there are train samples, and transpose (flip on its side)
-        X_test_tiled_1 = np.transpose( np.tile (X, (self.N1_train, 1, 1)), axes=(1, 0, 2))
+        X_test_tiled = np.transpose( np.tile (X, (2 * N_train_sel, 1, 1)), axes=(1, 0, 2))  # useless?
+        X_test_tiled_0 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))  # Replicate as many times as there are train samples, and transpose (flip on its side)
+        X_test_tiled_1 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))
 
         # Calculate element-wise distances (compress RGB information)
         dist_all = np.linalg.norm(X_train_tiled  - X_test_tiled  , axis=2)
@@ -107,6 +116,22 @@ class Kernel_bin:
         y_pred = (p0 < p1).astype(int)
 
         return y_pred
+
+    # def predict_looped (self, X: np.ndarray, verbose: bool = False):
+    #     # Fake vectorisation
+
+    #     pred_list = list()
+    #     N = X.shape[0]
+
+    #     for i, x in enumerate(X):
+    #         pred_list .append(self.predict(x))
+
+
+    #         progress = round(100 * i / N)
+    #         if verbose and progress % 1 == 0:
+    #             print(f'Progress: {progress}%')
+
+    #     return np.array(pred_list)
 
 
 
