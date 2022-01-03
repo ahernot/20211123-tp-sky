@@ -113,7 +113,7 @@ class Kernel_bin:
         p1 = sum_1 / sum_all
 
         # Estimate labels (using Bayes' estimation rule)
-        y_pred = (p0 < p1).astype(int)
+        y_pred = (p0 > p1).astype(int)
 
         return y_pred
 
