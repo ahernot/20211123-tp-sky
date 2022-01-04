@@ -90,7 +90,7 @@ class Kernel_bin:
         X1_train_tiled = np.tile (X1_train_sel, (N_test, 1, 1))
 
         # Tile X_test
-        X_test_tiled_0 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))  # Replicate as many times as there are train samples, and transpose (flip on its side)
+        X_test_tiled_0 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))
         X_test_tiled_1 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))
 
         # Calculate element-wise distances (compress RGB information)
