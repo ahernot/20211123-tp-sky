@@ -125,9 +125,20 @@ class Kernel_bin:
         
         #X_batches = 
 
+        cutoff = (X.shape[0] // batch_size) * batch_size
 
+        X_batches  = X[:cutoff] .reshape((-1, batch_size, 3))
+        X_leftover = X[cutoff:]
 
-        pass
+        y = np.empty(0)
+        for X_batch in X_batches:
+            y_batch = self.predict(X_batch)
+            y = np.concatenate((y, y_batch))
+
+        y_leftover = self.predict(X_leftover)
+        y = np.concatenate((y, y_leftover))
+        
+        return y
 
     # def predict_looped (self, X: np.ndarray, verbose: bool = False):
     #     # Fake vectorisation
