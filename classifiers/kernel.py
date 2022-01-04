@@ -117,6 +117,18 @@ class Kernel_bin:
 
         return y_pred
 
+
+    def predict_in_batches (self, X: np.ndarray, batch_size: int = 100):
+
+        # generate batches of testing data
+        # bootstrap for each batch (randomly select training vectors)
+        
+        #X_batches = 
+
+
+
+        pass
+
     # def predict_looped (self, X: np.ndarray, verbose: bool = False):
     #     # Fake vectorisation
 
