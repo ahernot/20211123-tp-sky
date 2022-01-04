@@ -84,20 +84,16 @@ class Kernel_bin:
 
         X0_train_sel = self.X0_train[index_0]
         X1_train_sel = self.X1_train[index_1]
-        X_train_sel = np.concatenate((X0_train_sel, X1_train_sel), axis=0)
 
         # Tile X_train
-        X_train_tiled = np.tile (X_train_sel, (N_test, 1, 1))  # useless?
         X0_train_tiled = np.tile (X0_train_sel, (N_test, 1, 1))
         X1_train_tiled = np.tile (X1_train_sel, (N_test, 1, 1))
 
         # Tile X_test
-        X_test_tiled = np.transpose( np.tile (X, (2 * N_train_sel, 1, 1)), axes=(1, 0, 2))  # useless?
         X_test_tiled_0 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))  # Replicate as many times as there are train samples, and transpose (flip on its side)
         X_test_tiled_1 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))
 
         # Calculate element-wise distances (compress RGB information)
-        dist_all = np.linalg.norm(X_train_tiled  - X_test_tiled  , axis=2)
         dist_0   = np.linalg.norm(X0_train_tiled - X_test_tiled_0, axis=2)
         dist_1   = np.linalg.norm(X1_train_tiled - X_test_tiled_1, axis=2)
 
@@ -105,9 +101,9 @@ class Kernel_bin:
         # HERE
 
         # Sum across training datapoints
-        sum_all = np.sum(dist_all, axis=1)
         sum_0   = np.sum(dist_0  , axis=1)
         sum_1   = np.sum(dist_1  , axis=1)
+        sum_all = sum_0 + sum_1
 
         p0 = sum_0 / sum_all  # each one is a sum of the distances on all the train vectors of class 0; each one is a normalising factor for the corresponding x_test vector
         p1 = sum_1 / sum_all
