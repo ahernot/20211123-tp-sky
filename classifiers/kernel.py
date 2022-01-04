@@ -74,7 +74,7 @@ class Kernel_bin:
         self.N0_train = self.X0_train.shape[0]
         self.N1_train = self.X1_train.shape[0]
 
-    def predict (self, X: np.ndarray):
+    def __predict (self, X: np.ndarray):
         N_test = X.shape[0]
 
         # randomly select n train vectors
@@ -118,43 +118,27 @@ class Kernel_bin:
         return y_pred
 
 
-    def predict_in_batches (self, X: np.ndarray, batch_size: int = 100):
+    def predict (self, X: np.ndarray, batch_size: int = 100):
 
-        # generate batches of testing data
-        # bootstrap for each batch (randomly select training vectors)
-        
-        #X_batches = 
+        if batch_size == -1: return self.__predict(X)
 
+        # Generate batches
         cutoff = (X.shape[0] // batch_size) * batch_size
-
         X_batches  = X[:cutoff] .reshape((-1, batch_size, 3))
         X_leftover = X[cutoff:]
 
+        # Predict on batches
         y = np.empty(0)
         for X_batch in X_batches:
-            y_batch = self.predict(X_batch)
+            y_batch = self.__predict(X_batch)
             y = np.concatenate((y, y_batch))
 
-        y_leftover = self.predict(X_leftover)
+        # Predict on remainder
+        y_leftover = self.__predict(X_leftover)
         y = np.concatenate((y, y_leftover))
         
         return y
 
-    # def predict_looped (self, X: np.ndarray, verbose: bool = False):
-    #     # Fake vectorisation
-
-    #     pred_list = list()
-    #     N = X.shape[0]
-
-    #     for i, x in enumerate(X):
-    #         pred_list .append(self.predict(x))
-
-
-    #         progress = round(100 * i / N)
-    #         if verbose and progress % 1 == 0:
-    #             print(f'Progress: {progress}%')
-
-    #     return np.array(pred_list)
 
 
 
