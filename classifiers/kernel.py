@@ -1,6 +1,19 @@
 from typing import Callable
 import numpy as np
 
+
+def kernel_exponential (x: np.ndarray):
+    return np.exp(-1 * np.power(x, 2))
+
+def kernel_capped (x: np.ndarray):
+    # 1/x function, capped in [-1, 1]
+    ret = np.ones(x.shape)
+    ret[x <= 1] = np.abs(1 / x)
+    return ret
+
+KERNEL_FUNC = kernel_capped
+
+
 class Kernel:
 
     def __init__ (self, func: Callable):
@@ -54,7 +67,7 @@ class Kernel:
 
 class Kernel_bin:
 
-    def __init__ (self, func: Callable):
+    def __init__ (self, func: Callable = KERNEL_FUNC):
         self.__func = func  # kernel func to ponderate the distances (centered on 0)
     
     def fit (self, X: np.ndarray, y: np.ndarray):
@@ -94,22 +107,25 @@ class Kernel_bin:
         X_test_tiled_1 = np.transpose( np.tile (X, (N_train_sel, 1, 1)), axes=(1, 0, 2))
 
         # Calculate element-wise distances (compress RGB information)
-        dist_0   = np.linalg.norm(X0_train_tiled - X_test_tiled_0, axis=2)
-        dist_1   = np.linalg.norm(X1_train_tiled - X_test_tiled_1, axis=2)
+        dist_0 = np.linalg.norm(X0_train_tiled - X_test_tiled_0, axis=2)
+        dist_1 = np.linalg.norm(X1_train_tiled - X_test_tiled_1, axis=2)
 
         # Apply kernel function weighing
         # HERE
+        dist_0 = self.__func(dist_0)
+        dist_1 = self.__func(dist_1)
 
         # Sum across training datapoints
-        sum_0   = np.sum(dist_0  , axis=1)
-        sum_1   = np.sum(dist_1  , axis=1)
+        sum_0   = np.sum(dist_0, axis=1)
+        sum_1   = np.sum(dist_1, axis=1)
         sum_all = sum_0 + sum_1
 
         p0 = sum_0 / sum_all  # each one is a sum of the distances on all the train vectors of class 0; each one is a normalising factor for the corresponding x_test vector
         p1 = sum_1 / sum_all
 
         # Estimate labels (using Bayes' estimation rule)
-        y_pred = (p0 > p1).astype(int)
+        # y_pred = (p0 > p1).astype(int)
+        y_pred = (p0 < p1).astype(int)
 
         return y_pred
 
@@ -138,10 +154,9 @@ class Kernel_bin:
 
 
 
-# def KERNEL_FUNC (x: np.ndarray):
-#     return np.exp(-1 * np.power(x, 2))
 
-# def KERNEL_CAPPED (x: np.ndarray):  # 1/x function, capped in [-1, 1]
-#     ret = np.ones(x.shape[0])
-#     ret[x <= 1] = np.abs(1 / x)
-#     return ret
+
+# def 
+
+
+
